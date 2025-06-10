@@ -5,7 +5,7 @@ import { adminAuth } from '@/app/api/admin/middleware';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   // Check admin authentication
   const authResponse = adminAuth(request);
@@ -14,7 +14,7 @@ export async function PUT(
   try {
     await dbConnect();
     
-    const userId = params.id;
+    const userId = context.params.id;
     const { balance } = await request.json();
     
     if (typeof balance !== 'number' || isNaN(balance)) {
