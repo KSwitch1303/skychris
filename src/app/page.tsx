@@ -1,103 +1,258 @@
-import Image from "next/image";
+'use client';
+
+import { 
+  Box, 
+  Button, 
+  Container, 
+  Grid, 
+  Paper, 
+  Typography, 
+  useTheme 
+} from '@mui/material';
+import Link from 'next/link';
+import { FiShield, FiSmartphone, FiCreditCard, FiArrowRight } from 'react-icons/fi';
 
 export default function Home() {
+  const theme = useTheme();
+  
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <Box sx={{ minHeight: '100vh', bgcolor: theme.palette.background.default }}>
+      {/* Hero Section */}
+      <Box sx={{ 
+        py: { xs: 6, md: 10 },
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <Container maxWidth="lg">
+          <Typography 
+            variant="h1" 
+            sx={{ 
+              fontWeight: 800,
+              mb: 2,
+              fontSize: { xs: '2.5rem', md: '3.5rem' } 
+            }}
+          >
+            Swift <Box component="span" sx={{ color: 'primary.main' }}>Mint Flow</Box>
+          </Typography>
+          
+          <Typography 
+            variant="h2" 
+            sx={{ 
+              fontWeight: 400,
+              mb: 4,
+              fontSize: { xs: '1.5rem', md: '2rem' },
+              color: 'text.secondary'
+            }}
+          >
+            Banking Made Simple
+          </Typography>
+          
+          <Grid container spacing={3} justifyContent="center" sx={{ mb: 6 }}>
+            <Grid item xs={12} sm={10} md={8}>
+              <Typography variant="body1" sx={{ mb: 4, fontSize: { xs: '1rem', md: '1.125rem' } }}>
+                Experience secure, fast, and convenient banking services designed for the modern world.
+                Send money, pay bills, save, and grow your wealth with Swift Mint Flow.
+              </Typography>
+              
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+                <Button 
+                  variant="contained" 
+                  size="large"
+                  component={Link as any}
+                  href="/auth/signup"
+                  sx={{ 
+                    px: 4, 
+                    py: 1.5,
+                    bgcolor: theme.palette.primary.main,
+                    '&:hover': { bgcolor: theme.palette.primary.dark }
+                  }}
+                >
+                  Get Started
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  size="large"
+                  component={Link as any}
+                  href="/auth/signin"
+                  sx={{ 
+                    px: 4, 
+                    py: 1.5,
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    color: 'text.primary'
+                  }}
+                >
+                  Sign In
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      {/* Features Section */}
+      <Box sx={{ py: { xs: 6, md: 10 }, bgcolor: 'background.paper' }}>
+        <Container maxWidth="lg">
+          <Typography variant="h3" sx={{ mb: 6, fontWeight: 700, textAlign: 'center' }}>
+            Why Choose Swift Mint Flow?
+          </Typography>
+
+          <Grid container spacing={4}>
+            {/* Feature 1 */}
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  height: '100%',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 2,
+                  bgcolor: 'background.default',
+                  '&:hover': { borderColor: theme.palette.primary.main },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', mb: 2 }}>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '50%',
+                      bgcolor: 'rgba(6, 214, 160, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <FiShield size={24} color={theme.palette.primary.main} />
+                  </Box>
+                </Box>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  Secure Banking
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Bank with confidence using state-of-the-art security measures.
+                  Two-factor authentication and PIN verification for all transactions.
+                </Typography>
+              </Paper>
+            </Grid>
+
+            {/* Feature 2 */}
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  height: '100%',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 2,
+                  bgcolor: 'background.default',
+                  '&:hover': { borderColor: theme.palette.primary.main },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', mb: 2 }}>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '50%',
+                      bgcolor: 'rgba(6, 214, 160, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <FiSmartphone size={24} color={theme.palette.primary.main} />
+                  </Box>
+                </Box>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  Easy Mobile Banking
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manage your finances anytime, anywhere with our intuitive mobile banking.
+                  Send money, buy airtime, and pay bills in just a few taps.
+                </Typography>
+              </Paper>
+            </Grid>
+
+            {/* Feature 3 */}
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  height: '100%',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 2,
+                  bgcolor: 'background.default',
+                  '&:hover': { borderColor: theme.palette.primary.main },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', mb: 2 }}>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '50%',
+                      bgcolor: 'rgba(6, 214, 160, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <FiCreditCard size={24} color={theme.palette.primary.main} />
+                  </Box>
+                </Box>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  Instant Transfers
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Send money instantly. Same-bank transfers are
+                  processed immediately with zero fees.
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          <Box sx={{ textAlign: 'center', mt: 6 }}>
+            <Button
+              variant="outlined"
+              size="large"
+              component={Link as any}
+              href="/auth/signup"
+              endIcon={<FiArrowRight />}
+              sx={{ 
+                px: 4, 
+                py: 1.5,
+                borderColor: 'rgba(255,255,255,0.2)',
+                color: theme.palette.primary.main
+              }}
+            >
+              Get Started Now
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Footer */}
+      <Box 
+        component="footer" 
+        sx={{ 
+          py: 4, 
+          bgcolor: 'background.default', 
+          borderTop: '1px solid rgba(255,255,255,0.05)'
+        }}
+      >
+        <Container>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              © {new Date().getFullYear()} Swift Mint Flow. All rights reserved.
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    </Box>
   );
 }
