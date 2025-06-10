@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
-import { adminAuth } from '../middleware';
+import { adminAuth } from '@/app/api/admin/middleware';
 
 export async function GET(request: NextRequest) {
   // Check admin authentication
