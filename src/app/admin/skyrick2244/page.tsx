@@ -137,13 +137,14 @@ export default function AdminPanel() {
   const updateUserBalance = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/users/${selectedUser._id}/balance`, {
+      const response = await fetch(`/api/admin/balance`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'x-admin-key': 'skyrick2244'
         },
         body: JSON.stringify({
+          userId: selectedUser._id,
           balance: parseFloat(newBalance)
         })
       });
