@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import mongoose from 'mongoose';
 import User from '@/models/User';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request) {
   try {
@@ -28,11 +29,11 @@ export async function POST(request) {
     // Update data based on collection name
     switch (collection.toLowerCase()) {
       case 'users':
-        // Special handling for password (would need to hash it first)
+        // Special handling for password
         if (safeUpdates.password) {
-          // If you want to update password, you should hash it first
-          // For now, we'll exclude password updates for safety
-          delete safeUpdates.password;
+          // Hash the password before updating
+          const salt = await bcrypt.genSalt(10);
+          safeUpdates.password = await bcrypt.hash(safeUpdates.password, salt);
         }
         
         result = await User.findByIdAndUpdate(

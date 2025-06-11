@@ -23,9 +23,11 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  useTheme
+  useTheme,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
-import { FiEdit2, FiTrash2, FiEye, FiRefreshCw, FiPlus, FiMinus, FiSave } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiRefreshCw, FiPlus, FiMinus, FiSave, FiKey } from 'react-icons/fi';
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -102,6 +104,9 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
   const [editItem, setEditItem] = useState<User | Card | Transaction | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [changePassword, setChangePassword] = useState<boolean>(false);
   const [filterCollection, setFilterCollection] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [password, setPassword] = useState<string>('');
@@ -146,6 +151,9 @@ export default function AdminPage() {
   const handleCloseEditDialog = () => {
     setOpenEditDialog(false);
     setEditItem(null);
+    setChangePassword(false);
+    setNewPassword('');
+    setShowPassword(false);
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,6 +176,14 @@ export default function AdminPage() {
       else if (tabValue === 1) collection = 'cards';
       else if (tabValue === 2) collection = 'transactions';
       
+      // Create updates object - for users, handle password specially
+      let updates = { ...editItem };
+      
+      // If changing password for a user
+      if (tabValue === 0 && changePassword && newPassword.trim() !== '') {
+        updates.password = newPassword.trim();
+      }
+      
       const response = await fetch(`/api/admin/edit`, {
         method: 'POST',
         headers: {
@@ -176,7 +192,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           collection,
           id: editItem._id,
-          updates: editItem
+          updates
         }),
       });
 
@@ -443,8 +459,9 @@ export default function AdminPage() {
                     <TableCell>Name</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
-                    <TableCell>Account Number</TableCell>
-                    <TableCell align="right">Balance ($)</TableCell>
+                    <TableCell>Account #</TableCell>
+                    <TableCell align="right">Balance</TableCell>
+                    <TableCell align="center">Password</TableCell>
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -457,6 +474,22 @@ export default function AdminPage() {
                         <TableCell>{user.phone}</TableCell>
                         <TableCell>{user.accountNumber}</TableCell>
                         <TableCell align="right">${user.balance.toFixed(2)}</TableCell>
+                        <TableCell align="center">
+                          <Box
+                            sx={{
+                              display: 'inline-block',
+                              px: 1.5,
+                              py: 0.5,
+                              borderRadius: 1,
+                              bgcolor: 'info.main',
+                              color: 'white',
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            <FiKey size={12} style={{ marginRight: '4px' }} />
+                            Encrypted
+                          </Box>
+                        </TableCell>
                         <TableCell align="center">
                           <IconButton size="small" onClick={() => handleOpenEditDialog(user)}>
                             <FiEdit2 />
@@ -553,7 +586,75 @@ export default function AdminPage() {
         <DialogContent dividers>
           {editItem && (
             <Box component="form" sx={{ display: 'grid', gap: 2 }}>
-              {Object.keys(editItem).filter(key => key !== '_id').map((key) => (
+              {/* If it's a user, add password management UI */}
+              {tabValue === 0 && (
+                <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(6, 214, 160, 0.1)', borderRadius: 1 }}>
+                  <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500, color: '#06D6A0' }}>
+                    Password Management
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                      Current Password Status:
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'inline-block',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 1,
+                        bgcolor: 'info.main',
+                        color: 'white',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      <FiKey size={12} style={{ marginRight: '4px' }} />
+                      Encrypted (Cannot be viewed)
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch 
+                          checked={changePassword} 
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setChangePassword(e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Set New Password"
+                    />
+                    
+                    {changePassword && (
+                      <TextField
+                        label="New Password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        type={showPassword ? 'text' : 'password'}
+                        fullWidth
+                        variant="outlined"
+                        InputProps={{
+                          endAdornment: (
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                              size="small"
+                            >
+                              {showPassword ? <FiEyeOff /> : <FiEye />}
+                            </IconButton>
+                          ),
+                        }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              )}
+              
+              {/* Regular fields */}
+              {Object.keys(editItem)
+                .filter(key => key !== '_id' && key !== 'password') // Don't show password field
+                .map((key) => (
                 <TextField
                   key={key}
                   name={key}
@@ -562,7 +663,7 @@ export default function AdminPage() {
                   onChange={handleEditChange}
                   fullWidth
                   variant="outlined"
-                  type={key.includes('password') ? 'password' : 'text'}
+                  type={key.includes('pin') ? 'password' : 'text'} // Keep PIN fields as password type
                   disabled={key === 'createdAt'} // Don't allow editing timestamps
                 />
               ))}
