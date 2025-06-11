@@ -221,12 +221,12 @@ export default function TransfersPage() {
                   }}
                 >
                   <option value=""></option>
-                  <option value="firstbank">First Bank</option>
-                  <option value="gtbank">GTBank</option>
-                  <option value="zenithbank">Zenith Bank</option>
-                  <option value="accessbank">Access Bank</option>
-                  <option value="uba">UBA</option>
-                  <option value="ecobank">Ecobank</option>
+                  <option value="bankofamerica">Bank of America</option>
+                  <option value="chase">Chase</option>
+                  <option value="wellsfargo">Wells Fargo</option>
+                  <option value="citibank">Citibank</option>
+                  <option value="capitalone">Capital One</option>
+                  <option value="usbank">US Bank</option>
                 </TextField>
 
                 <TextField

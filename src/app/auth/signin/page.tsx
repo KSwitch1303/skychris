@@ -258,7 +258,7 @@ export default function SignIn() {
                   <Typography 
                     variant="body2" 
                     component={Link}
-                    href=""
+                    href="/auth/forgot-password"
                     sx={{ 
                       color: theme.palette.primary.main,
                       textDecoration: 'none',
