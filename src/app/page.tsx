@@ -48,8 +48,8 @@ export default function Home() {
             Banking Made Simple
           </Typography>
           
-          <Grid container spacing={3} justifyContent="center" sx={{ mb: 6 }}>
-            <Grid item xs={12} sm={10} md={8}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 6 }}>
+            <Box sx={{ width: { xs: '100%', sm: '83.33%', md: '66.66%' }, px: 1.5 }}>
               <Typography variant="body1" sx={{ mb: 4, fontSize: { xs: '1rem', md: '1.125rem' } }}>
                 Experience secure, fast, and convenient banking services designed for the modern world.
                 Send money, pay bills, save, and grow your wealth with Swift Mint Flow.
@@ -85,8 +85,8 @@ export default function Home() {
                   Sign In
                 </Button>
               </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Container>
       </Box>
 
@@ -97,9 +97,9 @@ export default function Home() {
             Why Choose Swift Mint Flow?
           </Typography>
 
-          <Grid container spacing={4}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 4 }}>
             {/* Feature 1 */}
-            <Grid item xs={12} md={4}>
+            <Box>
               <Paper
                 elevation={0}
                 sx={{
@@ -135,10 +135,10 @@ export default function Home() {
                   Two-factor authentication and PIN verification for all transactions.
                 </Typography>
               </Paper>
-            </Grid>
+            </Box>
 
             {/* Feature 2 */}
-            <Grid item xs={12} md={4}>
+            <Box>
               <Paper
                 elevation={0}
                 sx={{
@@ -174,10 +174,10 @@ export default function Home() {
                   Send money, buy airtime, and pay bills in just a few taps.
                 </Typography>
               </Paper>
-            </Grid>
+            </Box>
 
             {/* Feature 3 */}
-            <Grid item xs={12} md={4}>
+            <Box>
               <Paper
                 elevation={0}
                 sx={{
@@ -213,8 +213,8 @@ export default function Home() {
                   processed immediately with zero fees.
                 </Typography>
               </Paper>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           <Box sx={{ textAlign: 'center', mt: 6 }}>
             <Button

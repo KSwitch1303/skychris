@@ -167,9 +167,9 @@ export default function CardsPage() {
 
             {loading ? (
               // Loading skeleton
-              <Grid container spacing={3}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 3 }}>
                 {[1, 2].map((index) => (
-                  <Grid item xs={12} sm={6} key={index}>
+                  <Box key={index}>
                     <Card sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 2 }}>
                       <CardContent sx={{ p: 2 }}>
                         <Skeleton variant="rectangular" height={40} sx={{ mb: 2, bgcolor: 'rgba(255,255,255,0.1)' }} />
@@ -177,9 +177,9 @@ export default function CardsPage() {
                         <Skeleton variant="text" width="40%" sx={{ bgcolor: 'rgba(255,255,255,0.1)' }} />
                       </CardContent>
                     </Card>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             ) : error ? (
               // Error state
               <Alert 
@@ -236,9 +236,9 @@ export default function CardsPage() {
               </Box>
             ) : (
               // Card list
-              <Grid container spacing={3}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 3 }}>
                 {cards.map((card) => (
-                  <Grid item xs={12} sm={6} key={card.id}>
+                  <Box key={card.id}>
                     <Card sx={{ 
                       borderRadius: 2, 
                       border: '1px solid rgba(255,255,255,0.05)',
@@ -321,9 +321,9 @@ export default function CardsPage() {
                         </Box>
                       </CardContent>
                     </Card>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             )}
           </CardContent>
         </Card>

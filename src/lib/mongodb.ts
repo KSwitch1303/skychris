@@ -1,5 +1,14 @@
 import mongoose from 'mongoose';
 
+// Define the type for the cached mongoose connection
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  } | undefined;
+}
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kswitch:passwordd@cluster0.bifhklj.mongodb.net/';
 
 if (!MONGODB_URI) {
