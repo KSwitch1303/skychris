@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -67,6 +67,8 @@ export default function TransfersPage() {
   const [accountName, setAccountName] = useState('');
   const [amount, setAmount] = useState('');
   const [narration, setNarration] = useState('');
+  const [bankSearch, setBankSearch] = useState('');
+  const [filteredBanks, setFilteredBanks] = useState<string[]>([]);
 
   // Transfer to Swift Mint Flow form fields
   const [recipientAccountNumber, setRecipientAccountNumber] = useState('');
@@ -131,6 +133,45 @@ export default function TransfersPage() {
       setRecipientAccountNumber(value.slice(0, 10));
     }
   };
+  
+  // List of Israeli banks
+  const israeliBanks = [
+    "Bank Hapoalim",
+    "Bank Leumi",
+    "Israel Discount Bank",
+    "Mercantile Discount Bank",
+    "First International Bank of Israel",
+    "Bank Massad",
+    "Jerusalem Bank",
+    "Bank of Israel",
+    "Bank of Jerusalem",
+    "Bank Otsar Ha-Hayal",
+    "Bank Poaley Agudat Israel",
+    "Bank Yahav",
+    "Mizrahi Tefahot Bank",
+    "Poalim Capital Market Investment Bank",
+    "Postal Bank of Israel Post",
+    "UBank",
+    "Union Bank of Israel",
+    "Yashir Leumi"
+  ];
+  
+  // Initialize and filter banks based on search input
+  useEffect(() => {
+    if (bankSearch.trim() === "") {
+      setFilteredBanks(israeliBanks);
+    } else {
+      const filtered = israeliBanks.filter(bank => 
+        bank.toLowerCase().includes(bankSearch.toLowerCase())
+      );
+      setFilteredBanks(filtered);
+    }
+  }, [bankSearch]);
+  
+  // Initialize banks list when component loads
+  useEffect(() => {
+    setFilteredBanks(israeliBanks);
+  }, []);
 
   // Quick amount buttons
   const quickAmounts = [5000, 10000, 20000, 50000];
@@ -203,6 +244,22 @@ export default function TransfersPage() {
               <Box component="form" onSubmit={handleBankTransfer} sx={{ px: { xs: 1, sm: 2 } }}>
                 <TextField
                   fullWidth
+                  label="Search Banks"
+                  value={bankSearch}
+                  onChange={(e) => setBankSearch(e.target.value)}
+                  placeholder="Type to search banks"
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FiCreditCard />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                
+                <TextField
+                  fullWidth
                   label="Bank Name"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
@@ -220,13 +277,12 @@ export default function TransfersPage() {
                     native: true,
                   }}
                 >
-                  <option value=""></option>
-                  <option value="bankofamerica">Bank of America</option>
-                  <option value="chase">Chase</option>
-                  <option value="wellsfargo">Wells Fargo</option>
-                  <option value="citibank">Citibank</option>
-                  <option value="capitalone">Capital One</option>
-                  <option value="usbank">US Bank</option>
+                  
+                  {filteredBanks.map((bank, index) => (
+                    <option key={index} value={bank.toLowerCase().replace(/\s+/g, '')}>
+                      {bank}
+                    </option>
+                  ))}
                 </TextField>
 
                 <TextField
