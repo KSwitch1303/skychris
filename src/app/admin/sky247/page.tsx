@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { 
   Box, 
   Typography, 
@@ -25,7 +25,47 @@ import {
   CircularProgress,
   useTheme
 } from '@mui/material';
-import { FiEdit2, FiTrash2, FiEye, FiRefreshCw, FiPlus, FiSave } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiEye, FiRefreshCw, FiPlus, FiMinus, FiSave } from 'react-icons/fi';
+
+interface TabPanelProps {
+  children?: ReactNode;
+  index: number;
+  value: number;
+}
+
+interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  accountNumber: string;
+  balance: number;
+  bankName: string;
+  [key: string]: any;
+}
+
+interface Card {
+  _id: string;
+  cardNumber: string;
+  cardName?: string;
+  cardholderName?: string;
+  expiryDate: string;
+  cardType: string;
+  isActive: boolean;
+  [key: string]: any;
+}
+
+interface Transaction {
+  _id: string;
+  reference: string;
+  type: string;
+  amount: number;
+  description: string;
+  status: string;
+  createdAt: string;
+  [key: string]: any;
+}
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -50,20 +90,23 @@ function a11yProps(index: number) {
   };
 }
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   const theme = useTheme();
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState<number>(0);
   const [users, setUsers] = useState<User[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [editItem, setEditItem] = useState<any>(null);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCollection, setFilterCollection] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
+  const [editItem, setEditItem] = useState<User | Card | Transaction | null>(null);
+  const [filterCollection, setFilterCollection] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>('');
+  const [errorAuth, setErrorAuth] = useState<string>('');
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
   // Authentication check
   useEffect(() => {
@@ -107,16 +150,24 @@ export default function AdminDashboard() {
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setEditItem((prev: any) => ({
-      ...prev,
-      [name]: value
-    }));
+    if (editItem) {
+      setEditItem({
+        ...editItem,
+        [name]: value
+      });
+    }
   };
 
   const handleSaveEdit = async () => {
+    if (!editItem) return;
+    
     setLoading(true);
     try {
-      const collection = tabValue === 0 ? 'users' : 'cards';
+      let collection;
+      if (tabValue === 0) collection = 'users';
+      else if (tabValue === 1) collection = 'cards';
+      else if (tabValue === 2) collection = 'transactions';
+      
       const response = await fetch(`/api/admin/edit`, {
         method: 'POST',
         headers: {
@@ -135,13 +186,15 @@ export default function AdminDashboard() {
         throw new Error(data.message || 'Failed to update item');
       }
 
-      // Update local state
+      // Update local state with proper type casting
       if (collection === 'users') {
-        setUsers(users.map(user => user._id === editItem._id ? editItem : user));
-      } else {
-        setCards(cards.map(card => card._id === editItem._id ? editItem : card));
+        setUsers(users.map(user => user._id === editItem._id ? editItem as User : user));
+      } else if (collection === 'cards') {
+        setCards(cards.map(card => card._id === editItem._id ? editItem as Card : card));
+      } else if (collection === 'transactions') {
+        setTransactions(transactions.map(transaction => transaction._id === editItem._id ? editItem as Transaction : transaction));
       }
-
+      
       setSuccess('Item updated successfully');
       handleCloseEditDialog();
     } catch (err: any) {
@@ -152,23 +205,24 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const collection = tabValue === 0 ? 'users' : 'cards';
-      const response = await fetch(`/api/admin/delete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          collection,
-          id
-        }),
-      });
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      setLoading(true);
+      try {
+        let collection;
+        if (tabValue === 0) collection = 'users';
+        else if (tabValue === 1) collection = 'cards';
+        else if (tabValue === 2) collection = 'transactions';
+        
+        const response = await fetch(`/api/admin/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            collection,
+            id
+          }),
+        });
 
       const data = await response.json();
       
@@ -188,6 +242,7 @@ export default function AdminDashboard() {
       setError(err.message || 'An error occurred while deleting');
     } finally {
       setLoading(false);
+    }
     }
   };
 
