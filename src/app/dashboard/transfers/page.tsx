@@ -463,7 +463,7 @@ export default function TransfersPage() {
                 Recent Beneficiaries
               </Typography>
 
-              {recentBeneficiaries.map((beneficiary) => (
+              {/* {recentBeneficiaries.map((beneficiary) => (
                 <Box 
                   key={beneficiary.id}
                   sx={{
@@ -506,7 +506,7 @@ export default function TransfersPage() {
                     Send
                   </Button>
                 </Box>
-              ))}
+              ))} */}
               
               <Button 
                 fullWidth 
