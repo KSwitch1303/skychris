@@ -65,30 +65,30 @@ export default function CardsPage() {
     };
 
     // Simulate data fetch with setTimeout for demo purposes
-    setTimeout(() => {
-      // Demo data for UI preview
-      setCards([
-        {
-          id: '1',
-          cardType: 'visa',
-          lastFour: '4242',
-          expiryMonth: '12',
-          expiryYear: '2025',
-          cardholderName: 'John Doe',
-          isDefault: true,
-        },
-        {
-          id: '2',
-          cardType: 'mastercard',
-          lastFour: '5678',
-          expiryMonth: '10',
-          expiryYear: '2026',
-          cardholderName: 'John Doe',
-          isDefault: false,
-        }
-      ]);
-      setLoading(false);
-    }, 1500);
+    // setTimeout(() => {
+    //   // Demo data for UI preview
+    //   setCards([
+    //     {
+    //       id: '1',
+    //       cardType: 'visa',
+    //       lastFour: '4242',
+    //       expiryMonth: '12',
+    //       expiryYear: '2025',
+    //       cardholderName: 'John Doe',
+    //       isDefault: true,
+    //     },
+    //     {
+    //       id: '2',
+    //       cardType: 'mastercard',
+    //       lastFour: '5678',
+    //       expiryMonth: '10',
+    //       expiryYear: '2026',
+    //       cardholderName: 'John Doe',
+    //       isDefault: false,
+    //     }
+    //   ]);
+    //   setLoading(false);
+    // }, 1500);
 
     // Uncomment to fetch real data
     // fetchCards();
