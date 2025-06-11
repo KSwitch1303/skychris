@@ -69,7 +69,7 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
   
   const secondaryNavItems = [
     { text: 'Profile', icon: <FiUser size={20} />, path: '/dashboard/profile' },
-    { text: 'Settings', icon: <FiSettings size={20} />, path: '/dashboard/settings' },
+    // { text: 'Settings', icon: <FiSettings size={20} />, path: '/dashboard/settings' },
     { text: 'Help & Support', icon: <FiHelpCircle size={20} />, path: '/dashboard/support' },
   ];
 
