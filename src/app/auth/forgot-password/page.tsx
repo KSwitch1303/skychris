@@ -192,8 +192,7 @@ export default function ForgotPassword() {
                 </Button>
                 
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                  <Typography 
-                    variant="body2" 
+                  <Box
                     component={Link}
                     href="/auth/signin"
                     sx={{ 
@@ -206,9 +205,12 @@ export default function ForgotPassword() {
                       }
                     }}
                   >
+                    <Typography variant="body2">
+
                     <FiArrowLeft size={14} style={{ marginRight: '4px' }} />
                     Back to Sign In
-                  </Typography>
+                    </Typography>
+                  </Box>
                 </Box>
               </form>
             )}
@@ -218,13 +220,14 @@ export default function ForgotPassword() {
         <Box sx={{ textAlign: 'center', mt: 3 }}>
           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
             Don't have an account?{' '}
-            <Link href="/auth/signup" style={{ 
-              color: theme.palette.primary.main, 
-              textDecoration: 'none',
-              '&:hover': {
-                textDecoration: 'underline',
-              }
-            }}>
+            <Link 
+              href="/auth/signup" 
+              style={{ 
+                color: theme.palette.primary.main, 
+                textDecoration: 'none'
+              }}
+              className="hover-underline"
+            >
               Sign up
             </Link>
           </Typography>
