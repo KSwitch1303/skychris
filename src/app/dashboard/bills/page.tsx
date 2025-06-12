@@ -297,53 +297,7 @@ const BillsPage = () => {
                   Recent Payments
                 </Typography>
                 
-                {recentPayments.map((payment, index) => (
-                  <React.Fragment key={payment.id}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      py: 2
-                    }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box 
-                          sx={{ 
-                            bgcolor: 'rgba(0,255,0,0.1)',
-                            color: theme.palette.primary.main,
-                            p: 1,
-                            borderRadius: 1,
-                            mr: 2,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          {payment.category.includes('Mobile') ? <FiPhone size={18} /> : 
-                           payment.category.includes('Internet') ? <FiWifi size={18} /> :
-                           payment.category.includes('Electricity') ? <FiZap size={18} /> :
-                           <FiHome size={18} />}
-                        </Box>
-                        
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {payment.provider}
-                          </Typography>
-                          <Typography variant="caption" color="textSecondary">
-                            {payment.accountNumber} • {new Date(payment.date).toLocaleDateString()}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        ${payment.amount.toFixed(2)}
-                      </Typography>
-                    </Box>
-                    
-                    {index < recentPayments.length - 1 && (
-                      <Divider />
-                    )}
-                  </React.Fragment>
-                ))}
+                
               </Box>
               
               <Box sx={{ p: 3, pt: 2 }}>
