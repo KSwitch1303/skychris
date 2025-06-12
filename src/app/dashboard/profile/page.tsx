@@ -250,7 +250,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, sm: 3 } }}>
       <Typography variant="h4" component="h1" sx={{ mb: { xs: 3, md: 4 }, fontWeight: 600, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
         My Profile
       </Typography>
@@ -306,15 +306,15 @@ export default function ProfilePage() {
             <Typography variant="h5" sx={{ fontWeight: 600, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
               {userData?.firstName || ''} {userData?.lastName || ''}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               {userData?.email || ''}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               Account #: {userData?.accountNumber || ''}
             </Typography>
             <Typography 
               variant="body2" 
-              sx={{ mt: 1, color: theme.palette.primary.main, fontWeight: 500 }}
+              sx={{ mt: { xs: 2, sm: 3 }, color: theme.palette.primary.main, fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
             >
               {userData?.role === 'admin' ? 'Administrator' : 'Customer'}
             </Typography>
@@ -333,7 +333,13 @@ export default function ProfilePage() {
 
         <Divider />
 
-        <Box sx={{ px: 2 }}>
+        <Box sx={{ 
+          p: { xs: 2, sm: 3 },
+          overflowX: { xs: 'auto', sm: 'visible' },
+          '& .MuiTabs-scrollButtons': {
+            display: { xs: 'flex', sm: 'none' }
+          }
+        }}>
           <Tabs 
             value={tabValue} 
             onChange={handleChange} 
@@ -382,7 +388,10 @@ export default function ProfilePage() {
               sx={{ 
                 display: 'grid', 
                 gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                gap: { xs: 1.5, sm: 2 }
+                gap: { xs: 1.5, sm: 2 },
+                '& .MuiInputBase-root': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }
               }}
             >
               <TextField

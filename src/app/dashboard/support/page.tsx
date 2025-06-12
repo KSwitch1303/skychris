@@ -185,14 +185,14 @@ export default function SupportPage() {
           {/* FAQs Tab */}
           <TabPanel value={tabValue} index={0}>
             <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
                 Frequently Asked Questions
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Find quick answers to common questions about using Swift Mint Flow.
               </Typography>
               
-              <Box sx={{ mt: 2 }}>
+              <Box sx={{ mt: { xs: 1.5, md: 2 } }}>
                 {faqs.map((faq) => (
                   <Accordion 
                     key={faq.id}
@@ -211,12 +211,12 @@ export default function SupportPage() {
                       id={`${faq.id}-header`}
                       sx={{ px: 0 }}
                     >
-                      <Typography fontWeight={500}>
+                      <Typography fontWeight={500} sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}>
                         {faq.question}
                       </Typography>
                     </AccordionSummary>
                     <AccordionDetails sx={{ px: 0 }}>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                         {faq.answer}
                       </Typography>
                     </AccordionDetails>
@@ -270,11 +270,11 @@ export default function SupportPage() {
                           size: 18
                         })}
                       </Box>
-                      <Typography variant="h6" fontSize="1rem">
+                      <Typography variant="h6" sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}>
                         {category.title}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
                       {category.description}
                     </Typography>
                   </Card>
@@ -315,10 +315,13 @@ export default function SupportPage() {
                 component="form"
                 onSubmit={handleSubmitContact}
                 sx={{ 
-                  mt: 2, 
+                  mt: { xs: 1.5, md: 2 }, 
                   display: 'grid', 
-                  gap: 2.5,
-                  gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }
+                  gap: { xs: 2, md: 2.5 },
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr', md: 'repeat(2, 1fr)' },
+                  '& .MuiInputBase-root': {
+                    fontSize: { xs: '0.875rem', md: '1rem' }
+                  }
                 }}
               >
                 <TextField
@@ -328,7 +331,7 @@ export default function SupportPage() {
                   fullWidth
                   required
                   variant="outlined"
-                  sx={{ gridColumn: { xs: 'span 1', md: 'span 1' } }}
+                  sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1', md: 'span 1' } }}
                 />
                 
                 <TextField
@@ -339,7 +342,7 @@ export default function SupportPage() {
                   fullWidth
                   required
                   variant="outlined"
-                  sx={{ gridColumn: { xs: 'span 1', md: 'span 1' } }}
+                  sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1', md: 'span 1' } }}
                 />
                 
                 <TextField
@@ -349,7 +352,7 @@ export default function SupportPage() {
                   onChange={(e) => setContactType(e.target.value)}
                   fullWidth
                   required
-                  sx={{ gridColumn: { xs: 'span 1', md: 'span 1' } }}
+                  sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1', md: 'span 1' } }}
                 >
                   <MenuItem value="general">General Inquiry</MenuItem>
                   <MenuItem value="account">Account Issues</MenuItem>
@@ -364,7 +367,7 @@ export default function SupportPage() {
                   onChange={(e) => setSubject(e.target.value)}
                   fullWidth
                   required
-                  sx={{ gridColumn: { xs: 'span 1', md: 'span 1' } }}
+                  sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1', md: 'span 1' } }}
                 />
                 
                 <TextField
