@@ -20,6 +20,7 @@ export interface IUser extends Document {
   bvn?: string;
   balance: number;
   pin: string;
+  taxCode?: string;
   role?: string;
   twoFactorEnabled: boolean;
   loginNotificationsEnabled: boolean;
@@ -113,6 +114,10 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Please set a transaction PIN'],
       length: 4,
+    },
+    taxCode: {
+      type: String,
+      trim: true,
     },
     twoFactorEnabled: {
       type: Boolean,

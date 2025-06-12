@@ -305,7 +305,7 @@ export default function Dashboard() {
                 <Button
                   variant="contained"
                   component={Link}
-                  href="/dashboard/transfers"
+                  href="/dashboard/withdraw"
                   startIcon={<FiArrowUpRight size={16} />}
                   sx={{
                     flex: 1,
@@ -316,7 +316,7 @@ export default function Dashboard() {
                     },
                   }}
                 >
-                  Transfer
+                  Withdraw
                 </Button>
                 <Button
                   variant="outlined"
@@ -340,8 +340,8 @@ export default function Dashboard() {
           </Card>
         </Box>
         
-        {/* Quick Actions Card */}
-        {/* <Box gridColumn={{ xs: 'span 12', md: 'span 6', lg: 'span 4' }}>
+        {/* Quick Access Card */}
+        <Box gridColumn={{ xs: 'span 12', md: 'span 6', lg: 'span 4' }}>
           <Card sx={{ 
             height: '100%', 
             borderRadius: 2,
@@ -351,14 +351,16 @@ export default function Dashboard() {
           }}>
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-                Quick Actions
+                Quick Access
               </Typography>
               
               <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={2}>
                 {[
-                  { icon: <FiRefreshCw size={18} />, label: 'Airtime', path: '/dashboard/airtime' },
-                  { icon: <FiCreditCard size={18} />, label: 'Bills', path: '/dashboard/bills' },
-                  { icon: <FiPlus size={18} />, label: 'Loans', path: '/dashboard/loans' },
+                  { icon: <FiArrowUpRight size={18} />, label: 'Wire Transfer', path: '/dashboard/transfers?type=wire' },
+                  { icon: <FiArrowUpRight size={18} />, label: 'Local Transfer', path: '/dashboard/transfers?type=local' },
+                  { icon: <FiArrowUpRight size={18} />, label: 'Internal Transfer', path: '/dashboard/transfers?type=internal' },
+                  { icon: <FiPlus size={18} />, label: 'Buy Crypto', path: '/dashboard/crypto' },
+                  { icon: <FiCreditCard size={18} />, label: 'Pay Bills', path: '/dashboard/bills' },
                 ].map((item, index) => (
                   <Box key={index}>
                     <Paper
@@ -398,44 +400,16 @@ export default function Dashboard() {
                       >
                         {item.icon}
                       </Box>
-                      <Typography variant="caption" color="text.primary" sx={{ textAlign: 'center' }}>
+                      <Typography variant="caption" color="text.secondary">
                         {item.label}
                       </Typography>
                     </Paper>
                   </Box>
                 ))}
               </Box>
-              
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-                  Savings Goal
-                </Typography>
-                
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.02)', p: 2, borderRadius: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="body2">New Car</Typography>
-                    <Typography variant="body2" color="primary" fontWeight={500}>
-                      65%
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ width: '100%', bgcolor: 'rgba(255,255,255,0.05)', height: 5, borderRadius: 5, mb: 1 }}>
-                    <Box sx={{ width: '65%', bgcolor: theme.palette.primary.main, height: 5, borderRadius: 5 }} />
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {formatCurrency(650000)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {formatCurrency(1000000)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
             </CardContent>
           </Card>
-        </Box> */}
+        </Box>
         
         {/* Transactions Card */}
         <Box gridColumn={{ xs: 'span 12', md: 'span 6', lg: 'span 4' }}>

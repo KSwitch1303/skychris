@@ -27,7 +27,7 @@ import {
   FormControlLabel,
   Switch
 } from '@mui/material';
-import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiRefreshCw, FiPlus, FiMinus, FiSave, FiKey } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiRefreshCw, FiPlus, FiMinus, FiSave, FiKey, FiCheckCircle } from 'react-icons/fi';
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -69,6 +69,19 @@ interface Transaction {
   [key: string]: any;
 }
 
+interface Withdrawal {
+  _id: string;
+  user: string | User;
+  amount: number;
+  taxCode: string;
+  taxVerified: boolean;
+  status: string;
+  reference: string;
+  createdAt: string;
+  completedAt?: string;
+  [key: string]: any;
+}
+
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
@@ -98,6 +111,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
@@ -174,7 +188,7 @@ export default function AdminPage() {
       let collection;
       if (tabValue === 0) collection = 'users';
       else if (tabValue === 1) collection = 'cards';
-      else if (tabValue === 2) collection = 'transactions';
+      else if (tabValue === 2) collection = 'withdrawals';
       
       // Create updates object - for users, handle password specially
       let updates = { ...editItem };
@@ -263,33 +277,104 @@ export default function AdminPage() {
   };
 
   const fetchData = async () => {
-    setLoading(true);
-    setError('');
+    if (!isAuthenticated) return;
     
+    setLoading(true);
     try {
-      // Fetch users
-      const usersResponse = await fetch('/api/admin/data?collection=users');
-      const usersData = await usersResponse.json();
-      
-      if (!usersResponse.ok) {
-        throw new Error(usersData.message || 'Failed to fetch users');
+      // Fetch users data
+      const usersRes = await fetch('/api/admin/users');
+      const usersData = await usersRes.json();
+      if (usersData.success) {
+        setUsers(usersData.data);
+      } else {
+        setUsers([]);
       }
       
-      setUsers(usersData.data);
-      
-      // Fetch cards
-      const cardsResponse = await fetch('/api/admin/data?collection=cards');
-      const cardsData = await cardsResponse.json();
-      
-      if (!cardsResponse.ok) {
-        throw new Error(cardsData.message || 'Failed to fetch cards');
+      // Fetch cards data
+      const cardsRes = await fetch('/api/admin/cards');
+      const cardsData = await cardsRes.json();
+      if (cardsData.success) {
+        setCards(cardsData.data);
+      } else {
+        setCards([]);
       }
       
-      setCards(cardsData.data);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while fetching data');
+      // Fetch withdrawals data
+      const withdrawalsRes = await fetch('/api/admin/withdrawals');
+      const withdrawalsData = await withdrawalsRes.json();
+      if (withdrawalsData.success) {
+        setWithdrawals(withdrawalsData.data);
+      } else {
+        setWithdrawals([]);
+      }
+      
+      // Success
+      setSuccess('Data refreshed successfully');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again.');
+      setTimeout(() => setError(''), 5000);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to verify a tax code
+  const handleVerifyTaxCode = async (withdrawalId: string) => {
+    if (!window.confirm('Do you want to verify this tax code as valid?')) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/verify-tax', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          withdrawalId,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update the withdrawal in the local state
+        setWithdrawals(prev => 
+          prev.map(w => 
+            w._id === withdrawalId 
+              ? { ...w, taxVerified: true } 
+              : w
+          )
+        );
+        setSuccess('Tax code verified successfully');
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        throw new Error(data.message || 'Failed to verify tax code');
+      }
+    } catch (error: any) {
+      setError(error.message || 'An error occurred while verifying tax code');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to get status color
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'warning.main';
+      case 'completed':
+        return 'success.main';
+      case 'rejected':
+        return 'error.main';
+      case 'verified':
+        return 'info.main';
+      default:
+        return 'text.secondary';
     }
   };
 
@@ -305,6 +390,10 @@ export default function AdminPage() {
 
   const filteredCards = cards.filter(card => 
     JSON.stringify(card).toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredWithdrawals = withdrawals.filter(withdrawal => 
+    JSON.stringify(withdrawal).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!isAuthenticated) {
@@ -443,6 +532,7 @@ export default function AdminPage() {
           >
             <Tab label={`Users (${users.length})`} {...a11yProps(0)} />
             <Tab label={`Cards (${cards.length})`} {...a11yProps(1)} />
+            <Tab label={`Withdrawals (${withdrawals.length})`} {...a11yProps(2)} />
           </Tabs>
         </Box>
         
@@ -568,6 +658,123 @@ export default function AdminPage() {
                     <TableRow>
                       <TableCell colSpan={6} align="center">
                         {cards.length === 0 ? 'No cards found' : 'No results match your search'}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Reference</TableCell>
+                    <TableCell>User</TableCell>
+                    <TableCell>Tax Code</TableCell>
+                    <TableCell align="right">Amount</TableCell>
+                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="center">Verification</TableCell>
+                    <TableCell align="center">Date</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredWithdrawals.length > 0 ? (
+                    filteredWithdrawals.map((withdrawal) => {
+                      // Format the date
+                      const formattedDate = new Date(withdrawal.createdAt).toLocaleString();
+                      const userId = typeof withdrawal.user === 'string' ? withdrawal.user : withdrawal.user._id;
+                      const userName = typeof withdrawal.user === 'string' 
+                        ? 'Unknown User' 
+                        : `${withdrawal.user.firstName} ${withdrawal.user.lastName}`;
+                      
+                      return (
+                        <TableRow key={withdrawal._id}>
+                          <TableCell>{withdrawal.reference}</TableCell>
+                          <TableCell>{userName}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant="body2" sx={{ mr: 1 }}>
+                                {withdrawal.taxCode}
+                              </Typography>
+                              {withdrawal.taxVerified ? (
+                                <Box
+                                  sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                    bgcolor: 'success.main',
+                                    color: 'white',
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  <FiCheckCircle size={12} style={{ marginRight: 4 }} />
+                                  Verified
+                                </Box>
+                              ) : null}
+                            </Box>
+                          </TableCell>
+                          <TableCell align="right">${withdrawal.amount.toFixed(2)}</TableCell>
+                          <TableCell align="center">
+                            <Box
+                              sx={{
+                                display: 'inline-block',
+                                px: 1.5,
+                                py: 0.5,
+                                borderRadius: 1,
+                                bgcolor: getStatusColor(withdrawal.status),
+                                color: 'white',
+                                fontSize: '0.75rem',
+                              }}
+                            >
+                              {withdrawal.status}
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            {withdrawal.taxVerified ? (
+                              <Button
+                                variant="outlined"
+                                color="success"
+                                size="small"
+                                disabled
+                              >
+                                Verified
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="contained"
+                                color="warning"
+                                size="small"
+                                onClick={() => handleVerifyTaxCode(withdrawal._id)}
+                              >
+                                Verify Now
+                              </Button>
+                            )}
+                          </TableCell>
+                          <TableCell align="center">{formattedDate}</TableCell>
+                          <TableCell align="center">
+                            <IconButton size="small" onClick={() => handleOpenEditDialog(withdrawal)}>
+                              <FiEdit2 />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        No withdrawals found
                       </TableCell>
                     </TableRow>
                   )}
