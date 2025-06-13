@@ -1,14 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Withdrawal from '@/models/Withdrawal';
-import User from '@/models/User';
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     // Connect to the database
     await dbConnect();
     
-    // Check if the request is from an admin (you might implement more robust authentication)
+    // Basic admin authentication check
     const adminAuth = req.cookies.get('adminAuth');
     if (!adminAuth || adminAuth.value !== 'true') {
       return NextResponse.json({
@@ -17,44 +16,31 @@ export async function POST(req: NextRequest) {
       }, { status: 401 });
     }
     
-    // Parse the request body
-    const { withdrawalId } = await req.json();
+    // Get request body
+    const body = await req.json();
+    const { withdrawalId } = body;
     
     if (!withdrawalId) {
       return NextResponse.json({
         success: false,
-        message: 'Withdrawal ID is required',
+        message: 'Missing withdrawal ID',
       }, { status: 400 });
     }
     
-    // Find the withdrawal record
+    // Find and update the withdrawal
     const withdrawal = await Withdrawal.findById(withdrawalId);
+    
     if (!withdrawal) {
       return NextResponse.json({
         success: false,
-        message: 'Withdrawal record not found',
+        message: 'Withdrawal not found',
       }, { status: 404 });
     }
     
-    // Update the withdrawal status
+    // Update the tax verification status
     withdrawal.taxVerified = true;
-    
-    // If it's in pending status, update it to verified
-    if (withdrawal.status === 'pending') {
-      withdrawal.status = 'verified';
-    }
-    
-    // Save the updated withdrawal record
     await withdrawal.save();
     
-    // Find the user to update their tax code if needed
-    const user = await User.findById(withdrawal.user);
-    if (user && !user.taxCode) {
-      user.taxCode = withdrawal.taxCode;
-      await user.save();
-    }
-    
-    // Return success response
     return NextResponse.json({
       success: true,
       message: 'Tax code verified successfully',
@@ -66,14 +52,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: false,
       message: 'An error occurred while verifying the tax code',
+      error: error.message,
     }, { status: 500 });
   }
-}
-
-export async function GET(req: NextRequest) {
-  // Return method not allowed for GET requests
-  return NextResponse.json({
-    success: false,
-    message: 'Method not allowed',
-  }, { status: 405 });
 }

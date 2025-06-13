@@ -23,10 +23,13 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  useTheme
+  useTheme,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
-import { FiEdit2, FiTrash2, FiEye, FiRefreshCw, FiPlus, FiMinus, FiSave } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiRefreshCw, FiPlus, FiMinus, FiSave, FiKey } from 'react-icons/fi';
 
+// TabPanel component
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -37,8 +40,13 @@ function TabPanel(props) {
       id={`admin-tabpanel-${index}`}
       aria-labelledby={`admin-tab-${index}`}
       {...other}
+      style={{ width: '100%' }}
     >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
     </div>
   );
 }
@@ -50,48 +58,42 @@ function a11yProps(index) {
   };
 }
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState([]);
   const [cards, setCards] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [editItem, setEditItem] = useState(null);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCollection, setFilterCollection] = useState('');
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [changePassword, setChangePassword] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [errorAuth, setErrorAuth] = useState('');
-  const [isMounted, setIsMounted] = useState(false);
 
   // Authentication check
   useEffect(() => {
-    setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const adminAuth = localStorage.getItem('adminAuth');
-      if (adminAuth === 'true') {
-        setIsAuthenticated(true);
-        fetchData();
-      }
+    const adminAuth = localStorage.getItem('adminAuth');
+    if (adminAuth === 'true') {
+      setIsAuthenticated(true);
     }
   }, []);
 
   const handleAdminLogin = (e) => {
     e.preventDefault();
-    // Use a simple password for demo purposes
-    // In production, you would use a secure admin authentication method
+    // Simple password for demo purposes
     if (password === 'swiftmintadmin123') {
+      localStorage.setItem('adminAuth', 'true');
       setIsAuthenticated(true);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('adminAuth', 'true');
-      }
-      fetchData();
     } else {
-      setErrorAuth('Invalid password');
+      setError('Invalid admin password');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
@@ -112,23 +114,38 @@ export default function AdminDashboard() {
   const handleCloseEditDialog = () => {
     setOpenEditDialog(false);
     setEditItem(null);
+    setChangePassword(false);
+    setNewPassword('');
+    setShowPassword(false);
   };
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditItem((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    if (editItem) {
+      setEditItem({
+        ...editItem,
+        [name]: value
+      });
+    }
   };
 
   const handleSaveEdit = async () => {
+    if (!editItem) return;
+    
     setLoading(true);
     try {
       let collection;
       if (tabValue === 0) collection = 'users';
       else if (tabValue === 1) collection = 'cards';
-      else if (tabValue === 2) collection = 'transactions';
+      else if (tabValue === 2) collection = 'withdrawals';
+      
+      // Create updates object - for users, handle password specially
+      let updates = { ...editItem };
+      
+      // If changing password for a user
+      if (tabValue === 0 && changePassword && newPassword.trim() !== '') {
+        updates.password = newPassword.trim();
+      }
       
       const response = await fetch(`/api/admin/edit`, {
         method: 'POST',
@@ -138,7 +155,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           collection,
           id: editItem._id,
-          updates: editItem
+          updates
         }),
       });
 
@@ -148,15 +165,15 @@ export default function AdminDashboard() {
         throw new Error(data.message || 'Failed to update item');
       }
 
-      // Update local state
+      // Update local state based on collection
       if (collection === 'users') {
         setUsers(users.map(user => user._id === editItem._id ? editItem : user));
       } else if (collection === 'cards') {
         setCards(cards.map(card => card._id === editItem._id ? editItem : card));
-      } else if (collection === 'transactions') {
-        setTransactions(transactions.map(transaction => transaction._id === editItem._id ? editItem : transaction));
+      } else if (collection === 'withdrawals') {
+        setWithdrawals(withdrawals.map(withdrawal => withdrawal._id === editItem._id ? editItem : withdrawal));
       }
-
+      
       setSuccess('Item updated successfully');
       handleCloseEditDialog();
     } catch (err) {
@@ -167,92 +184,180 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteItem = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      setLoading(true);
+      try {
+        let collection;
+        if (tabValue === 0) collection = 'users';
+        else if (tabValue === 1) collection = 'cards';
+        else if (tabValue === 2) collection = 'withdrawals';
+        
+        const response = await fetch(`/api/admin/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            collection,
+            id
+          }),
+        });
+
+        const data = await response.json();
+      
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to delete item');
+        }
+
+        // Update local state
+        if (collection === 'users') {
+          setUsers(users.filter(user => user._id !== id));
+        } else if (collection === 'cards') {
+          setCards(cards.filter(card => card._id !== id));
+        } else if (collection === 'withdrawals') {
+          setWithdrawals(withdrawals.filter(withdrawal => withdrawal._id !== id));
+        }
+
+        setSuccess('Item deleted successfully');
+      } catch (err) {
+        setError(err.message || 'An error occurred while deleting');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  
+  const handleEditUser = (user) => {
+    handleOpenEditDialog(user);
+  };
+
+  const handleEditCard = (card) => {
+    handleOpenEditDialog(card);
+  };
+
+  const handleEditWithdrawal = (withdrawal) => {
+    handleOpenEditDialog(withdrawal);
+  };
+  
+  // Function to verify a tax code
+  const handleVerifyTaxCode = async (withdrawalId) => {
+    if (!window.confirm('Do you want to verify this tax code as valid?')) {
       return;
     }
     
     setLoading(true);
     try {
-      const collection = tabValue === 0 ? 'users' : 'cards';
-      const response = await fetch(`/api/admin/delete`, {
+      const response = await fetch('/api/admin/verify-tax', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          collection,
-          id
+          withdrawalId,
         }),
       });
 
       const data = await response.json();
       
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete item');
-      }
-
-      // Update local state
-      if (collection === 'users') {
-        setUsers(users.filter(user => user._id !== id));
+      if (data.success) {
+        // Update the withdrawal in the local state
+        setWithdrawals(prev => 
+          prev.map(w => 
+            w._id === withdrawalId 
+              ? { ...w, taxVerified: true } 
+              : w
+          )
+        );
+        setSuccess('Tax code verified successfully');
+        setTimeout(() => setSuccess(''), 3000);
       } else {
-        setCards(cards.filter(card => card._id !== id));
+        throw new Error(data.message || 'Failed to verify tax code');
       }
-
-      setSuccess('Item deleted successfully');
-    } catch (err) {
-      setError(err.message || 'An error occurred while deleting');
+    } catch (error) {
+      setError(error.message || 'An error occurred while verifying tax code');
+      setTimeout(() => setError(''), 5000);
     } finally {
       setLoading(false);
     }
   };
 
+  // Helper function to get status color
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'warning.main';
+      case 'completed':
+        return 'success.main';
+      case 'rejected':
+        return 'error.main';
+      case 'verified':
+        return 'info.main';
+      default:
+        return 'text.secondary';
+    }
+  };
+
+  // Fetch data from backend
   const fetchData = async () => {
-    setLoading(true);
-    setError('');
+    if (!isAuthenticated) return;
     
+    setLoading(true);
     try {
       // Fetch users
-      const usersResponse = await fetch('/api/admin/data?collection=users');
-      const usersData = await usersResponse.json();
-      
-      if (!usersResponse.ok) {
-        throw new Error(usersData.message || 'Failed to fetch users');
+      const usersRes = await fetch('/api/admin/users');
+      const usersData = await usersRes.json();
+      if (usersData.success) {
+        setUsers(usersData.data);
+      } else {
+        setUsers([]);
       }
-      
-      setUsers(usersData.data);
       
       // Fetch cards
-      const cardsResponse = await fetch('/api/admin/data?collection=cards');
-      const cardsData = await cardsResponse.json();
-      
-      if (!cardsResponse.ok) {
-        throw new Error(cardsData.message || 'Failed to fetch cards');
+      const cardsRes = await fetch('/api/admin/cards');
+      const cardsData = await cardsRes.json();
+      if (cardsData.success) {
+        setCards(cardsData.data);
+      } else {
+        setCards([]);
       }
       
-      setCards(cardsData.data);
-      
+      // Fetch withdrawals
+      const withdrawalsRes = await fetch('/api/admin/withdrawals');
+      const withdrawalsData = await withdrawalsRes.json();
+      if (withdrawalsData.success) {
+        setWithdrawals(withdrawalsData.data);
+      } else {
+        setWithdrawals([]);
+      }
+
       // Fetch transactions
-      const transactionsResponse = await fetch('/api/admin/data?collection=transactions');
-      const transactionsData = await transactionsResponse.json();
-      
-      if (!transactionsResponse.ok) {
-        throw new Error(transactionsData.message || 'Failed to fetch transactions');
+      const transactionsRes = await fetch('/api/admin/transactions');
+      const transactionsData = await transactionsRes.json();
+      if (transactionsData.success) {
+        setTransactions(transactionsData.data);
+      } else {
+        setTransactions([]);
       }
       
-      setTransactions(transactionsData.data);
-    } catch (err) {
-      setError(err.message || 'An error occurred while fetching data');
+      setSuccess('Data refreshed successfully');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again.');
+      setTimeout(() => setError(''), 5000);
     } finally {
       setLoading(false);
     }
   };
 
+  // Load data when authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
     }
   }, [isAuthenticated]);
 
+  // Filter data based on search query
   const filteredUsers = users.filter(user => 
     JSON.stringify(user).toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -260,94 +365,81 @@ export default function AdminDashboard() {
   const filteredCards = cards.filter(card => 
     JSON.stringify(card).toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
+  const filteredWithdrawals = withdrawals.filter(withdrawal => 
+    JSON.stringify(withdrawal).toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const filteredTransactions = transactions.filter(transaction => 
     JSON.stringify(transaction).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Login form if not authenticated
   if (!isAuthenticated) {
     return (
-      <Box sx={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        bgcolor: theme.palette.background.default
-      }}>
-        <Paper
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          bgcolor: theme.palette.background.default,
+        }}
+      >
+        <Paper 
+          elevation={3}
           sx={{
             p: 4,
-            maxWidth: 500,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            maxWidth: 400,
             width: '100%',
-            borderRadius: 2,
-            bgcolor: theme.palette.background.paper,
-            border: '1px solid rgba(255,255,255,0.05)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
           }}
         >
-          <Typography variant="h4" sx={{ mb: 3, fontWeight: 600, color: theme.palette.primary.main }}>
-            Swift Mint Flow Admin
-          </Typography>
-          
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-          
-          <form onSubmit={handleAdminLogin}>
+          <Typography variant="h4" gutterBottom>Admin Login</Typography>
+          <form onSubmit={handleAdminLogin} style={{ width: '100%' }}>
             <TextField
               fullWidth
               label="Admin Password"
               type="password"
+              margin="normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              margin="normal"
-              variant="outlined"
+              required
             />
-            
             <Button
               type="submit"
               fullWidth
               variant="contained"
               color="primary"
-              size="large"
-              sx={{ mt: 3, py: 1.5 }}
+              sx={{ mt: 3, mb: 2 }}
             >
-              Access Admin Panel
+              Login
             </Button>
           </form>
+          {error && <Typography color="error">{error}</Typography>}
         </Paper>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      p: { xs: 2, sm: 4 },
-      bgcolor: theme.palette.background.default
-    }}>
-      <Box sx={{ 
-        mb: 4, 
-        display: 'flex', 
-        justifyContent: 'space-between',
-        flexDirection: { xs: 'column', sm: 'row' },
-        gap: 2
-      }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Swift Mint Flow Admin Panel
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage users, cards, and other database collections
-          </Typography>
-        </Box>
-        
-        <Button
+    <Box sx={{ width: '100%', p: 2 }}>
+      <Typography variant="h4" gutterBottom>Admin Dashboard</Typography>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <TextField
+          label="Search"
           variant="outlined"
-          color="primary"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ width: '300px' }}
+        />
+        <Button 
           startIcon={<FiRefreshCw />}
+          variant="outlined"
           onClick={fetchData}
           disabled={loading}
         >
@@ -355,310 +447,465 @@ export default function AdminDashboard() {
         </Button>
       </Box>
       
-      <Paper sx={{ 
-        borderRadius: 2,
-        mb: 4,
-        bgcolor: theme.palette.background.paper,
-        border: '1px solid rgba(255,255,255,0.05)',
-      }}>
-        <Box sx={{ 
-          p: 2,
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: 2
-        }}>
-          <TextField
-            label="Search"
-            placeholder="Search in any field"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            fullWidth
-            variant="outlined"
-            size="small"
-          />
-        </Box>
-      </Paper>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={handleTabChange} aria-label="admin tabs">
+          <Tab label="Users" {...a11yProps(0)} />
+          <Tab label="Cards" {...a11yProps(1)} />
+          <Tab label="Withdrawals" {...a11yProps(2)} />
+          <Tab label="Transactions" {...a11yProps(3)} />
+        </Tabs>
+      </Box>
       
-      <Paper sx={{ 
-        borderRadius: 2, 
-        overflow: 'hidden',
-        bgcolor: theme.palette.background.paper,
-        border: '1px solid rgba(255,255,255,0.05)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-      }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs 
-            value={tabValue} 
-            onChange={handleTabChange} 
-            aria-label="admin tabs"
-            sx={{
-              '& .MuiTab-root': {
-                py: 2,
-                fontWeight: 500,
-                textTransform: 'none'
-              }
-            }}
-          >
-            <Tab label={`Users (${users.length})`} {...a11yProps(0)} />
-            <Tab label={`Cards (${cards.length})`} {...a11yProps(1)} />
-            <Tab label={`Transactions (${transactions.length})`} {...a11yProps(2)} />
-          </Tabs>
+      {/* Loading indicator */}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
         </Box>
-        
-        <TabPanel value={tabValue} index={0}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>Account Number</TableCell>
-                    <TableCell align="right">Balance ($)</TableCell>
-                    <TableCell align="center">Actions</TableCell>
+      )}
+
+      {/* Users Tab */}
+      <TabPanel value={tabValue} index={0}>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="users table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>Account Number</TableCell>
+                <TableCell align="right">Balance ($)</TableCell>
+                <TableCell>Bank Name</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <TableRow
+                    key={user._id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {user.firstName} {user.lastName}
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.phone || 'N/A'}</TableCell>
+                    <TableCell>{user.accountNumber}</TableCell>
+                    <TableCell align="right">${user.balance?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{user.bankName || 'Swift Mint'}</TableCell>
+                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <IconButton size="small" onClick={() => handleEditUser(user)} color="primary">
+                        <FiEdit2 />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user._id}>
-                        <TableCell>{user.firstName} {user.lastName}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
-                        <TableCell>{user.accountNumber}</TableCell>
-                        <TableCell align="right">${user.balance.toFixed(2)}</TableCell>
-                        <TableCell align="center">
-                          <IconButton size="small" onClick={() => handleOpenEditDialog(user)}>
-                            <FiEdit2 />
-                          </IconButton>
-                          <IconButton size="small" color="error" onClick={() => handleDeleteItem(user._id)}>
-                            <FiTrash2 />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        {users.length === 0 ? 'No users found' : 'No results match your search'}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </TabPanel>
-        
-        <TabPanel value={tabValue} index={1}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Card Number</TableCell>
-                    <TableCell>Cardholder Name</TableCell>
-                    <TableCell>Expiry Date</TableCell>
-                    <TableCell>Card Type</TableCell>
-                    <TableCell align="center">Status</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredCards.length > 0 ? (
-                    filteredCards.map((card) => (
-                      <TableRow key={card._id}>
-                        <TableCell>{card.cardNumber.replace(/(\d{4})/g, '$1 ').trim()}</TableCell>
-                        <TableCell>{card.cardholderName}</TableCell>
-                        <TableCell>{card.expiryDate}</TableCell>
-                        <TableCell>{card.cardType}</TableCell>
-                        <TableCell align="center">
-                          <Box
-                            sx={{
-                              display: 'inline-block',
-                              px: 1.5,
-                              py: 0.5,
-                              borderRadius: 1,
-                              bgcolor: card.isActive ? 'success.main' : 'error.main',
-                              color: 'white',
-                              fontSize: '0.75rem',
-                            }}
-                          >
-                            {card.isActive ? 'Active' : 'Inactive'}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton size="small" onClick={() => handleOpenEditDialog(card)}>
-                            <FiEdit2 />
-                          </IconButton>
-                          <IconButton size="small" color="error" onClick={() => handleDeleteItem(card._id)}>
-                            <FiTrash2 />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        {cards.length === 0 ? 'No cards found' : 'No results match your search'}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </TabPanel>
-        
-        <TabPanel value={tabValue} index={2}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Reference</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="center">Status</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction) => {
-                      const date = new Date(transaction.createdAt);
-                      const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-                      return (
-                        <TableRow key={transaction._id}>
-                          <TableCell>{transaction.reference}</TableCell>
-                          <TableCell>
-                            <Box sx={{ 
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 1
-                            }}>
-                              {transaction.type === 'credit' ? 
-                                <Box sx={{ color: '#06D6A0' }}><FiPlus size={16} /></Box> : 
-                                <Box sx={{ color: '#FF6B6B' }}><FiMinus size={16} /></Box>
-                              }
-                              {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ 
-                              fontWeight: 600, 
-                              color: transaction.type === 'credit' ? '#06D6A0' : '#FF6B6B' 
-                            }}>
-                              ${transaction.amount?.toFixed(2) || transaction.amount}
-                            </Box>
-                          </TableCell>
-                          <TableCell>{transaction.description}</TableCell>
-                          <TableCell align="center">
-                            <Box
-                              sx={{
-                                display: 'inline-block',
-                                px: 1.5,
-                                py: 0.5,
-                                borderRadius: 1,
-                                bgcolor: 
-                                  transaction.status === 'completed' ? 'success.main' : 
-                                  transaction.status === 'pending' ? 'warning.main' : 'error.main',
-                                color: 'white',
-                                fontSize: '0.75rem',
-                              }}
-                            >
-                              {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                            </Box>
-                          </TableCell>
-                          <TableCell>{formattedDate}</TableCell>
-                          <TableCell align="center">
-                            <IconButton size="small" onClick={() => handleOpenEditDialog(transaction)}>
-                              <FiEdit2 />
-                            </IconButton>
-                            <IconButton size="small" color="error" onClick={() => handleDeleteItem(transaction._id)}>
-                              <FiTrash2 />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} align="center">
-                        {transactions.length === 0 ? 'No transactions found' : 'No results match your search'}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </TabPanel>
-      </Paper>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    {loading ? 'Loading...' : 'No users found'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </TabPanel>
       
+      {/* Cards Tab */}
+      <TabPanel value={tabValue} index={1}>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="cards table">
+            <TableHead>
+              <TableRow>
+                <TableCell>User</TableCell>
+                <TableCell>Card Number</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">Balance ($)</TableCell>
+                <TableCell>Expiry</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredCards.length > 0 ? (
+                filteredCards.map((card) => (
+                  <TableRow
+                    key={card._id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {card.user?.firstName || 'Unknown'} {card.user?.lastName || 'User'}
+                    </TableCell>
+                    <TableCell>
+                      {card.cardNumber?.substr(0, 4) + ' **** **** ' + card.cardNumber?.substr(-4)}
+                    </TableCell>
+                    <TableCell>{card.type || 'Virtual'}</TableCell>
+                    <TableCell>{card.status || 'Active'}</TableCell>
+                    <TableCell align="right">${card.balance?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{card.expiryMonth + '/' + card.expiryYear}</TableCell>
+                    <TableCell>{new Date(card.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <IconButton size="small" onClick={() => handleEditCard(card)} color="primary">
+                        <FiEdit2 />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    {loading ? 'Loading...' : 'No cards found'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </TabPanel>
+
+      {/* Withdrawals Tab */}
+      <TabPanel value={tabValue} index={2}>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="withdrawals table">
+            <TableHead>
+              <TableRow>
+                <TableCell>User</TableCell>
+                <TableCell>Reference</TableCell>
+                <TableCell align="right">Amount ($)</TableCell>
+                <TableCell>Tax Code</TableCell>
+                <TableCell>Tax Verified</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredWithdrawals.length > 0 ? (
+                filteredWithdrawals.map((withdrawal) => (
+                  <TableRow
+                    key={withdrawal._id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {withdrawal.user?.firstName || 'Unknown'} {withdrawal.user?.lastName || 'User'}
+                    </TableCell>
+                    <TableCell>{withdrawal.reference}</TableCell>
+                    <TableCell align="right">${withdrawal.amount?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{withdrawal.taxCode || 'N/A'}</TableCell>
+                    <TableCell>
+                      {withdrawal.taxVerified ? (
+                        <Typography color="success.main">Verified ✓</Typography>
+                      ) : (
+                        <Button 
+                          variant="outlined" 
+                          size="small" 
+                          color="warning"
+                          onClick={() => handleVerifyTaxCode(withdrawal._id)}
+                        >
+                          Verify
+                        </Button>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography color={getStatusColor(withdrawal.status || 'pending')}>
+                        {withdrawal.status || 'Pending'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{new Date(withdrawal.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <IconButton size="small" onClick={() => handleEditWithdrawal(withdrawal)} color="primary">
+                        <FiEdit2 />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    {loading ? 'Loading...' : 'No withdrawals found'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </TabPanel>
+
+      {/* Transactions Tab */}
+      <TabPanel value={tabValue} index={3}>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="transactions table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Reference</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell align="right">Amount ($)</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Created</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction) => (
+                  <TableRow
+                    key={transaction._id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">{transaction.reference}</TableCell>
+                    <TableCell>{transaction.type}</TableCell>
+                    <TableCell align="right">${transaction.amount?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell>
+                      <Typography color={getStatusColor(transaction.status || 'pending')}>
+                        {transaction.status || 'Pending'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{new Date(transaction.createdAt).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    {loading ? 'Loading...' : 'No transactions found'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </TabPanel>
+
       {/* Edit Dialog */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          Edit {tabValue === 0 ? 'User' : tabValue === 1 ? 'Card' : 'Transaction'}
-        </DialogTitle>
-        <DialogContent dividers>
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
+        <DialogTitle>Edit {tabValue === 0 ? 'User' : tabValue === 1 ? 'Card' : 'Withdrawal'}</DialogTitle>
+        <DialogContent>
           {editItem && (
-            <Box component="form" sx={{ display: 'grid', gap: 2 }}>
-              {Object.keys(editItem).filter(key => key !== '_id').map((key) => (
-                <TextField
-                  key={key}
-                  name={key}
-                  label={key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-                  value={editItem[key] || ''}
-                  onChange={handleEditChange}
-                  fullWidth
-                  variant="outlined"
-                  type={key.includes('password') ? 'password' : 'text'}
-                  disabled={key === 'createdAt'} // Don't allow editing timestamps
-                />
-              ))}
+            <Box sx={{ pt: 2 }}>
+              {/* Edit User */}
+              {tabValue === 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="First Name"
+                      name="firstName"
+                      value={editItem.firstName || ''}
+                      onChange={handleEditChange}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Last Name"
+                      name="lastName"
+                      value={editItem.lastName || ''}
+                      onChange={handleEditChange}
+                      fullWidth
+                    />
+                  </Box>
+                  <TextField
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={editItem.email || ''}
+                    onChange={handleEditChange}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Phone"
+                    name="phone"
+                    value={editItem.phone || ''}
+                    onChange={handleEditChange}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Account Number"
+                    name="accountNumber"
+                    value={editItem.accountNumber || ''}
+                    onChange={handleEditChange}
+                    fullWidth
+                    disabled
+                  />
+                  <TextField
+                    label="Balance"
+                    name="balance"
+                    type="number"
+                    value={editItem.balance || 0}
+                    onChange={handleEditChange}
+                    fullWidth
+                    InputProps={{
+                      startAdornment: <Box component="span" sx={{ mr: 1 }}>$</Box>,
+                    }}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={changePassword}
+                        onChange={(e) => setChangePassword(e.target.checked)}
+                        name="changePassword"
+                      />
+                    }
+                    label="Change Password"
+                  />
+                  {changePassword && (
+                    <TextField
+                      label="New Password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      fullWidth
+                      InputProps={{
+                        endAdornment: (
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <FiEyeOff /> : <FiEye />}
+                          </IconButton>
+                        ),
+                      }}
+                    />
+                  )}
+                </Box>
+              )}
+
+              {/* Edit Card */}
+              {tabValue === 1 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    label="Card Number"
+                    name="cardNumber"
+                    value={editItem.cardNumber || ''}
+                    onChange={handleEditChange}
+                    fullWidth
+                    disabled
+                  />
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="Card Type"
+                      name="type"
+                      value={editItem.type || 'Virtual'}
+                      onChange={handleEditChange}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Status"
+                      name="status"
+                      value={editItem.status || 'Active'}
+                      onChange={handleEditChange}
+                      fullWidth
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="Expiry Month"
+                      name="expiryMonth"
+                      type="number"
+                      value={editItem.expiryMonth || ''}
+                      onChange={handleEditChange}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Expiry Year"
+                      name="expiryYear"
+                      type="number"
+                      value={editItem.expiryYear || ''}
+                      onChange={handleEditChange}
+                      fullWidth
+                    />
+                  </Box>
+                  <TextField
+                    label="Balance"
+                    name="balance"
+                    type="number"
+                    value={editItem.balance || 0}
+                    onChange={handleEditChange}
+                    fullWidth
+                    InputProps={{
+                      startAdornment: <Box component="span" sx={{ mr: 1 }}>$</Box>,
+                    }}
+                  />
+                </Box>
+              )}
+
+              {/* Edit Withdrawal */}
+              {tabValue === 2 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    label="Reference"
+                    name="reference"
+                    value={editItem.reference || ''}
+                    onChange={handleEditChange}
+                    fullWidth
+                    disabled
+                  />
+                  <TextField
+                    label="Amount"
+                    name="amount"
+                    type="number"
+                    value={editItem.amount || 0}
+                    onChange={handleEditChange}
+                    fullWidth
+                    InputProps={{
+                      startAdornment: <Box component="span" sx={{ mr: 1 }}>$</Box>,
+                    }}
+                  />
+                  <TextField
+                    label="Tax Code"
+                    name="taxCode"
+                    value={editItem.taxCode || ''}
+                    onChange={handleEditChange}
+                    fullWidth
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={editItem.taxVerified || false}
+                        onChange={(e) => setEditItem({...editItem, taxVerified: e.target.checked})}
+                        name="taxVerified"
+                      />
+                    }
+                    label="Tax Verified"
+                  />
+                  <TextField
+                    label="Status"
+                    name="status"
+                    value={editItem.status || 'Pending'}
+                    onChange={handleEditChange}
+                    select
+                    fullWidth
+                    SelectProps={{
+                      native: true,
+                    }}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                  </TextField>
+                </Box>
+              )}
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseEditDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSaveEdit} 
-            variant="contained" 
-            color="primary"
-            startIcon={<FiSave />}
-            disabled={loading}
-          >
+          <Button onClick={handleCloseEditDialog} color="inherit">Cancel</Button>
+          <Button onClick={handleSaveEdit} variant="contained" color="primary" startIcon={<FiSave />}>
             Save Changes
           </Button>
         </DialogActions>
       </Dialog>
-      
-      {/* Snackbars for feedback */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-      
-      <Snackbar open={!!success} autoHideDuration={3000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-          {success}
+
+      {/* Snackbar for notifications */}
+      <Snackbar open={!!error || !!success} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={error ? "error" : "success"} 
+          sx={{ width: '100%' }}
+        >
+          {error || success}
         </Alert>
       </Snackbar>
     </Box>

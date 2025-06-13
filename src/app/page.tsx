@@ -896,7 +896,7 @@ export default function Home() {
             {/* Right column services */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Crypto Trading */}
-              <Box sx={{ 
+              {/* <Box sx={{ 
                 display: 'flex', 
                 p: 2,
                 borderRadius: 2,
@@ -923,7 +923,7 @@ export default function Home() {
                     Buy, sell, and store cryptocurrencies securely. Access competitive exchange rates and instant settlement to your account.
                   </Typography>
                 </Box>
-              </Box>
+              </Box> */}
               
               {/* Investment Plans */}
               <Box sx={{ 

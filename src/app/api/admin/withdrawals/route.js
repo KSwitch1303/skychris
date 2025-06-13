@@ -1,15 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Withdrawal from '@/models/Withdrawal';
-import User from '@/models/User';
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   try {
     // Connect to the database
     await dbConnect();
     
     // Basic admin authentication check
-    // In a production app, you would implement more robust authentication
     const adminAuth = req.cookies.get('adminAuth');
     if (!adminAuth || adminAuth.value !== 'true') {
       return NextResponse.json({
@@ -36,11 +34,4 @@ export async function GET(req: NextRequest) {
       message: 'An error occurred while fetching withdrawals',
     }, { status: 500 });
   }
-}
-
-export async function POST(req: NextRequest) {
-  return NextResponse.json({
-    success: false,
-    message: 'Method not allowed',
-  }, { status: 405 });
 }

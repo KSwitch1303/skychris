@@ -1,76 +1,75 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose';
 import User from '@/models/User';
+import Card from '@/models/Card';
+import Withdrawal from '@/models/Withdrawal';
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const body = await request.json();
-    const { collection, id } = body;
-
-    if (!collection || !id) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Collection name and ID are required' 
-      }, { status: 400 });
-    }
-
     // Connect to the database
     await dbConnect();
     
+    // Basic admin authentication check
+    const adminAuth = req.cookies.get('adminAuth');
+    if (!adminAuth || adminAuth.value !== 'true') {
+      return NextResponse.json({
+        success: false,
+        message: 'Unauthorized access',
+      }, { status: 401 });
+    }
+    
+    // Get request body
+    const body = await req.json();
+    const { collection, id } = body;
+    
+    if (!collection || !id) {
+      return NextResponse.json({
+        success: false,
+        message: 'Missing required fields',
+      }, { status: 400 });
+    }
+    
     let result;
-
-    // Delete data based on collection name
-    switch (collection.toLowerCase()) {
+    
+    // Handle deletion based on collection
+    switch(collection) {
       case 'users':
         result = await User.findByIdAndDelete(id);
         break;
         
       case 'cards':
-        // Check if Cards model exists in your schema
-        try {
-          const Card = mongoose.models.Card || mongoose.model('Card', new mongoose.Schema({}, { strict: false }));
-          result = await Card.findByIdAndDelete(id);
-        } catch (cardError) {
-          console.error('Error deleting card:', cardError);
-          return NextResponse.json({ 
-            success: false, 
-            message: 'Error deleting card'
-          }, { status: 500 });
-        }
+        result = await Card.findByIdAndDelete(id);
+        break;
+        
+      case 'withdrawals':
+        result = await Withdrawal.findByIdAndDelete(id);
         break;
         
       default:
-        // Try to delete from any collection dynamically
-        try {
-          const model = mongoose.models[collection] || 
-            mongoose.model(collection, new mongoose.Schema({}, { strict: false }));
-          result = await model.findByIdAndDelete(id);
-        } catch (modelError) {
-          return NextResponse.json({ 
-            success: false, 
-            message: `Collection '${collection}' not found` 
-          }, { status: 404 });
-        }
+        return NextResponse.json({
+          success: false,
+          message: 'Invalid collection',
+        }, { status: 400 });
     }
-
+    
     if (!result) {
-      return NextResponse.json({ 
-        success: false, 
-        message: `Item with ID ${id} not found in ${collection}` 
+      return NextResponse.json({
+        success: false,
+        message: 'Item not found',
       }, { status: 404 });
     }
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Item deleted successfully' 
-    });
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Item deleted successfully',
+    }, { status: 200 });
+    
   } catch (error) {
-    console.error('Admin delete error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Error deleting item',
-      error: error.message
+    console.error('Error deleting item:', error);
+    return NextResponse.json({
+      success: false,
+      message: 'An error occurred while deleting the item',
+      error: error.message,
     }, { status: 500 });
   }
 }

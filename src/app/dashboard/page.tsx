@@ -359,7 +359,7 @@ export default function Dashboard() {
                   { icon: <FiArrowUpRight size={18} />, label: 'Wire Transfer', path: '/dashboard/transfers?type=wire' },
                   { icon: <FiArrowUpRight size={18} />, label: 'Local Transfer', path: '/dashboard/transfers?type=local' },
                   { icon: <FiArrowUpRight size={18} />, label: 'Internal Transfer', path: '/dashboard/transfers?type=internal' },
-                  { icon: <FiPlus size={18} />, label: 'Buy Crypto', path: '/dashboard/crypto' },
+                  // { icon: <FiPlus size={18} />, label: 'Buy Crypto', path: '/dashboard/crypto' },
                   { icon: <FiCreditCard size={18} />, label: 'Pay Bills', path: '/dashboard/bills' },
                 ].map((item, index) => (
                   <Box key={index}>

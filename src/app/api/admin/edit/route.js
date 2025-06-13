@@ -1,102 +1,96 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose';
 import User from '@/models/User';
+import Card from '@/models/Card';
+import Withdrawal from '@/models/Withdrawal';
 import bcrypt from 'bcryptjs';
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const body = await request.json();
-    const { collection, id, updates } = body;
-
-    if (!collection || !id || !updates) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Collection name, ID, and updates are required' 
-      }, { status: 400 });
-    }
-
     // Connect to the database
     await dbConnect();
     
-    // Remove fields that shouldn't be directly updated
-    const safeUpdates = { ...updates };
-    delete safeUpdates._id; // Don't update the ID
-    delete safeUpdates.__v; // Don't update version key
+    // Basic admin authentication check
+    const adminAuth = req.cookies.get('adminAuth');
+    if (!adminAuth || adminAuth.value !== 'true') {
+      return NextResponse.json({
+        success: false,
+        message: 'Unauthorized access',
+      }, { status: 401 });
+    }
+    
+    // Get request body
+    const body = await req.json();
+    const { collection, id, updates } = body;
+    
+    if (!collection || !id || !updates) {
+      return NextResponse.json({
+        success: false,
+        message: 'Missing required fields',
+      }, { status: 400 });
+    }
     
     let result;
-
-    // Update data based on collection name
-    switch (collection.toLowerCase()) {
+    
+    // Handle updates based on collection
+    switch(collection) {
       case 'users':
-        // Special handling for password
-        if (safeUpdates.password) {
-          // Hash the password before updating
+        // Handle password separately if provided
+        if (updates.password) {
+          // Hash the password
           const salt = await bcrypt.genSalt(10);
-          safeUpdates.password = await bcrypt.hash(safeUpdates.password, salt);
+          updates.password = await bcrypt.hash(updates.password, salt);
         }
         
         result = await User.findByIdAndUpdate(
           id, 
-          { $set: safeUpdates }, 
+          updates, 
+          { new: true, runValidators: true }
+        ).select('-password');
+        break;
+        
+      case 'cards':
+        result = await Card.findByIdAndUpdate(
+          id, 
+          updates, 
           { new: true, runValidators: true }
         );
         break;
         
-      case 'cards':
-        // Check if Cards model exists in your schema
-        try {
-          const Card = mongoose.models.Card || mongoose.model('Card', new mongoose.Schema({}, { strict: false }));
-          result = await Card.findByIdAndUpdate(
-            id, 
-            { $set: safeUpdates }, 
-            { new: true, runValidators: true }
-          );
-        } catch (cardError) {
-          console.error('Error updating card:', cardError);
-          return NextResponse.json({ 
-            success: false, 
-            message: 'Error updating card'
-          }, { status: 500 });
-        }
+      case 'withdrawals':
+        result = await Withdrawal.findByIdAndUpdate(
+          id, 
+          updates, 
+          { new: true, runValidators: true }
+        );
         break;
         
       default:
-        // Try to update any collection dynamically
-        try {
-          const model = mongoose.models[collection] || 
-            mongoose.model(collection, new mongoose.Schema({}, { strict: false }));
-          result = await model.findByIdAndUpdate(
-            id, 
-            { $set: safeUpdates }, 
-            { new: true, runValidators: true }
-          );
-        } catch (modelError) {
-          return NextResponse.json({ 
-            success: false, 
-            message: `Collection '${collection}' not found` 
-          }, { status: 404 });
-        }
+        return NextResponse.json({
+          success: false,
+          message: 'Invalid collection',
+        }, { status: 400 });
     }
-
+    
     if (!result) {
-      return NextResponse.json({ 
-        success: false, 
-        message: `Item with ID ${id} not found in ${collection}` 
+      return NextResponse.json({
+        success: false,
+        message: 'Item not found',
       }, { status: 404 });
     }
-
-    return NextResponse.json({ 
-      success: true, 
+    
+    return NextResponse.json({
+      success: true,
       message: 'Item updated successfully',
-      data: result
-    });
+      data: result,
+    }, { status: 200 });
+    
   } catch (error) {
-    console.error('Admin edit error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Error updating item',
-      error: error.message
+    console.error('Error updating item:', error);
+    return NextResponse.json({
+      success: false,
+      message: 'An error occurred while updating the item',
+      error: error.message,
     }, { status: 500 });
   }
 }
