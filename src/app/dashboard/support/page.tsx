@@ -227,7 +227,7 @@ export default function SupportPage() {
             
             <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.08)' }} />
             
-            <Box>
+            {/* <Box>
               <Typography variant="h6" gutterBottom>
                 Support Categories
               </Typography>
@@ -280,7 +280,7 @@ export default function SupportPage() {
                   </Card>
                 ))}
               </Box>
-            </Box>
+            </Box> */}
           </TabPanel>
           
           {/* Contact Us Tab */}
