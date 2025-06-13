@@ -79,7 +79,15 @@ export default function AdminPage() {
 
   // Authentication check
   useEffect(() => {
-    const adminAuth = localStorage.getItem('adminAuth');
+    // Check for cookie instead of localStorage
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+    
+    const adminAuth = getCookie('adminAuth');
     if (adminAuth === 'true') {
       setIsAuthenticated(true);
     }
@@ -89,7 +97,8 @@ export default function AdminPage() {
     e.preventDefault();
     // Simple password for demo purposes
     if (password === 'swiftmintadmin123') {
-      localStorage.setItem('adminAuth', 'true');
+      // Set cookie instead of localStorage
+      document.cookie = 'adminAuth=true; path=/; max-age=3600'; // expires in 1 hour
       setIsAuthenticated(true);
     } else {
       setError('Invalid admin password');
@@ -152,6 +161,7 @@ export default function AdminPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Add credentials to include cookies
         body: JSON.stringify({
           collection,
           id: editItem._id,
@@ -197,6 +207,7 @@ export default function AdminPage() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include', // Add credentials to include cookies
           body: JSON.stringify({
             collection,
             id
@@ -252,6 +263,7 @@ export default function AdminPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Add credentials to include cookies
         body: JSON.stringify({
           withdrawalId,
         }),
@@ -302,18 +314,23 @@ export default function AdminPage() {
     if (!isAuthenticated) return;
     
     setLoading(true);
+    console.log('Starting fetchData for admin page');
     try {
       // Fetch users
-      const usersRes = await fetch('/api/admin/users');
+      console.log('Fetching users...');
+      const usersRes = await fetch('/api/admin/users', { credentials: 'include' });
+      console.log('Users response status:', usersRes.status);
       const usersData = await usersRes.json();
+      console.log('Users data:', usersData);
       if (usersData.success) {
         setUsers(usersData.data);
       } else {
+        console.error('Failed to load users:', usersData.message);
         setUsers([]);
       }
       
       // Fetch cards
-      const cardsRes = await fetch('/api/admin/cards');
+      const cardsRes = await fetch('/api/admin/cards', { credentials: 'include' });
       const cardsData = await cardsRes.json();
       if (cardsData.success) {
         setCards(cardsData.data);
@@ -322,7 +339,7 @@ export default function AdminPage() {
       }
       
       // Fetch withdrawals
-      const withdrawalsRes = await fetch('/api/admin/withdrawals');
+      const withdrawalsRes = await fetch('/api/admin/withdrawals', { credentials: 'include' });
       const withdrawalsData = await withdrawalsRes.json();
       if (withdrawalsData.success) {
         setWithdrawals(withdrawalsData.data);
@@ -331,7 +348,7 @@ export default function AdminPage() {
       }
 
       // Fetch transactions
-      const transactionsRes = await fetch('/api/admin/transactions');
+      const transactionsRes = await fetch('/api/admin/transactions', { credentials: 'include' });
       const transactionsData = await transactionsRes.json();
       if (transactionsData.success) {
         setTransactions(transactionsData.data);
