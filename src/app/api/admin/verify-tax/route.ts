@@ -10,8 +10,8 @@ export async function POST(req: Request) {
     
     // Basic admin authentication check
     const cookieStore = cookies();
-    const adminAuth = cookieStore.get('adminAuth');
-    console.log('Admin auth cookie for verify-tax:', adminAuth);
+    // const adminAuth = cookieStore.get('adminAuth');
+    // console.log('Admin auth cookie for verify-tax:', adminAuth);
     
     // Skip auth check temporarily for debugging
     // if (!adminAuth || adminAuth.value !== 'true') {

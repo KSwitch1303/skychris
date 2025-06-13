@@ -12,8 +12,8 @@ export async function GET(req: Request) {
     
     // Basic admin authentication check
     const cookieStore = cookies();
-    const adminAuth = cookieStore.get('adminAuth');
-    console.log('Admin auth cookie:', adminAuth);
+    // const adminAuth = cookieStore.get('adminAuth');
+    // console.log('Admin auth cookie:', adminAuth);
     
     // Skip auth check temporarily for debugging
     // if (!adminAuth || adminAuth.value !== 'true') {

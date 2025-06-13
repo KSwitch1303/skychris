@@ -12,8 +12,8 @@ export async function POST(req: Request) {
     
     // Basic admin authentication check
     const cookieStore = cookies();
-    const adminAuth = cookieStore.get('adminAuth');
-    console.log('Admin auth cookie for delete:', adminAuth);
+    // const adminAuth = cookieStore.get('adminAuth');
+    // console.log('Admin auth cookie for delete:', adminAuth);
     
     // Skip auth check temporarily for debugging
     // if (!adminAuth || adminAuth.value !== 'true') {
