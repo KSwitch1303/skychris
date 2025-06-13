@@ -18,6 +18,7 @@ import {
   TextField
 } from '@mui/material';
 import Link from 'next/link';
+import { Link as MuiLink } from '@mui/material';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { 
@@ -1354,9 +1355,9 @@ export default function Home() {
       >
         <Container maxWidth="lg">
           {/* Main Footer Content */}
-          <Grid container spacing={4} sx={{ mb: 6 }}>
+          <Grid component="div" container spacing={4} sx={{ mb: 6 }}>
             {/* Company Info */}
-            <Grid item xs={12} md={3}>
+            <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
                 <FiDollarSign size={28} color={theme.palette.primary.main} />
                 <Typography variant="h6" sx={{ ml: 1, fontWeight: 700 }}>
@@ -1370,7 +1371,7 @@ export default function Home() {
             </Grid>
             
             {/* Quick Links */}
-            <Grid item xs={12} md={3}>
+            <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
                 Quick Links
               </Typography>
@@ -1382,7 +1383,7 @@ export default function Home() {
                   { name: 'Investments', href: '#services' },
                   { name: 'Crypto', href: '#services' }
                 ].map((link, index) => (
-                  <Link 
+                  <MuiLink 
                     key={index} 
                     href={link.href}
                     onClick={(e) => handleScrollTo(e, link.href.substring(1))}
@@ -1390,13 +1391,13 @@ export default function Home() {
                     sx={{ color: 'text.secondary', '&:hover': { color: theme.palette.primary.main } }}
                   >
                     {link.name}
-                  </Link>
+                  </MuiLink>
                 ))}
               </Stack>
             </Grid>
             
             {/* Legal */}
-            {/* <Grid item xs={12} md={3}>
+            {/* <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
                 Legal
               </Typography>
@@ -1421,7 +1422,7 @@ export default function Home() {
             </Grid> */}
             
             {/* Contact */}
-            <Grid item xs={12} md={3}>
+            <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
                 Contact Us
               </Typography>
