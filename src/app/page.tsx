@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { Link as MuiLink } from '@mui/material';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { 
   FiShield, 
   FiSmartphone, 
@@ -56,6 +57,7 @@ const scrollToSection = (elementId: string) => {
 
 export default function Home() {
   const theme = useTheme();
+  const { currency } = useCurrency();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   // Function to handle scroll to section when clicking links
@@ -102,7 +104,7 @@ export default function Home() {
                   fontSize: { xs: '1.2rem', md: '1.5rem' }
                 }}
               >
-                <Box 
+                {/* <Box 
                   component="span" 
                   sx={{ 
                     mr: 1,
@@ -116,7 +118,7 @@ export default function Home() {
                   }}
                 >
                   <FiDollarSign size={20} color={theme.palette.primary.main} />
-                </Box>
+                </Box> */}
                 Swift<Box component="span" sx={{ color: 'primary.main' }}>Mint Flow</Box>
               </Typography>
             </Box>
@@ -453,7 +455,7 @@ export default function Home() {
                     border: '1px solid rgba(6,214,160,0.3)'
                   }}>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Available Balance</Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700, my: 1, color: theme.palette.primary.main }}>$1,287,452.63</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700, my: 1, color: theme.palette.primary.main }}>{currency.symbol}1,287,452.63</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>6223 **** **** 5019</Typography>
                       <FiBarChart2 size={16} color={theme.palette.primary.main} />
@@ -520,7 +522,7 @@ export default function Home() {
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>Electricity</Typography>
                         </Box>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>- $2,000</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>- {currency.symbol}2,000</Typography>
                     </Box>
                   </Box>
                 </Box>
@@ -611,7 +613,7 @@ export default function Home() {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>Minimum Balance</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>$1,000</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{currency.symbol}1,000</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>Withdrawal Limit</Typography>
@@ -677,7 +679,7 @@ export default function Home() {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>Loan Amount</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>Up to $5 million</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>Up to {currency.symbol}5 million</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>Approval Time</Typography>
@@ -1142,9 +1144,9 @@ export default function Home() {
                     mb: 2
                   }}>
                     {[
-                      { label: 'Balance', value: '$3,457,892.45' },
-                      { label: 'Pending', value: '$245,000.00' },
-                      { label: 'Total Sales', value: '$12.4M' },
+                      { label: 'Balance', value: `${currency.symbol}3,457,892.45` },
+                      { label: 'Pending', value: `${currency.symbol}245,000.00` },
+                      { label: 'Total Sales', value: `${currency.symbol}12.4M` },
                       { label: 'Customers', value: '1,245' }
                     ].map((item, index) => (
                       <Box key={index} sx={{ 
@@ -1163,9 +1165,9 @@ export default function Home() {
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, fontSize: '0.9rem' }}>Recent Transactions</Typography>
                     {[
-                      { name: 'Inventory Payment', type: 'Outflow', amount: '-$450,000' },
-                      { name: 'Customer Payment', type: 'Inflow', amount: '+$275,000' },
-                      { name: 'Utility Bills', type: 'Outflow', amount: '-$35,420' }
+                      { name: 'Inventory Payment', type: 'Outflow', amount: `-${currency.symbol}450,000` },
+                      { name: 'Customer Payment', type: 'Inflow', amount: `+${currency.symbol}275,000` },
+                      { name: 'Utility Bills', type: 'Outflow', amount: `-${currency.symbol}35,420` }
                     ].map((transaction, index) => (
                       <Box key={index} sx={{ 
                         py: 1.5,
@@ -1359,9 +1361,9 @@ export default function Home() {
             {/* Company Info */}
             <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                <FiDollarSign size={28} color={theme.palette.primary.main} />
+                {/* <FiDollarSign size={28} color={theme.palette.primary.main} /> */}
                 <Typography variant="h6" sx={{ ml: 1, fontWeight: 700 }}>
-                  SwiftMint
+                  SwiftMint Flow
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

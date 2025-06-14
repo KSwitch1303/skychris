@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
+import { CurrencyDisplay, ColoredCurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import { 
   Box, 
   Button, 
@@ -40,6 +43,8 @@ const steps = ['Enter Amount', 'Tax Code Verification', 'Confirmation'];
 export default function WithdrawPage() {
   const theme = useTheme();
   const router = useRouter();
+  const { currency } = useCurrency();
+  const formatter = useCurrencyFormatter();
   const [activeStep, setActiveStep] = useState(0);
   const [amount, setAmount] = useState('');
   const [taxCode, setTaxCode] = useState('');
@@ -159,14 +164,14 @@ export default function WithdrawPage() {
             </Typography>
             <TextField
               fullWidth
-              label="Amount ($)"
+              label={`Amount (${currency.symbol})`}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               type="number"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <FiDollarSign />
+                    <span>{currency.symbol}</span>
                   </InputAdornment>
                 ),
               }}
@@ -174,7 +179,7 @@ export default function WithdrawPage() {
             />
             {user && (
               <Typography variant="body2" color="text.secondary">
-                Available Balance: ${user.balance ? user.balance.toFixed(2) : '0.00'}
+                Available Balance: <CurrencyDisplay amount={user.balance || 0} />
               </Typography>
             )}
           </Box>
@@ -225,7 +230,7 @@ export default function WithdrawPage() {
             
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                Withdrawal Amount: ${parseFloat(amount).toFixed(2)}
+                Withdrawal Amount: {currency.symbol}{parseFloat(amount).toFixed(2)}
               </Typography>
             </Box>
           </Box>
@@ -252,7 +257,7 @@ export default function WithdrawPage() {
             </Typography>
             
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Your withdrawal request for ${parseFloat(amount).toFixed(2)} has been submitted and is now pending tax code verification.
+              Your withdrawal request for {currency.symbol}{parseFloat(amount).toFixed(2)} has been submitted and is now pending tax code verification.
             </Typography>
             
             {withdrawalId && (

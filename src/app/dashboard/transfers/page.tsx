@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
+import { CurrencyDisplay, ColoredCurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import {
   Box,
   Typography,
@@ -56,6 +60,9 @@ function TabPanel(props: TabPanelProps) {
 
 export default function TransfersPage() {
   const theme = useTheme();
+  const router = useRouter();
+  const { currency } = useCurrency();
+  const formatter = useCurrencyFormatter();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -320,7 +327,7 @@ export default function TransfersPage() {
 
                 <TextField
                   fullWidth
-                  label="Amount ($)"
+                  label={`Amount (${currency.symbol})`}
                   value={amount}
                   onChange={handleAmountChange}
                   placeholder="Enter amount"
@@ -329,7 +336,7 @@ export default function TransfersPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <FiDollarSign />
+                        <span>{currency.symbol}</span>
                       </InputAdornment>
                     ),
                   }}
@@ -352,7 +359,7 @@ export default function TransfersPage() {
                         }
                       }}
                     >
-                      ${quickAmount.toLocaleString()}
+                      {quickAmount.toLocaleString()}
                     </Button>
                   ))}
                 </Box>
@@ -431,7 +438,7 @@ export default function TransfersPage() {
 
                 <TextField
                   fullWidth
-                  label="Amount ($)"
+                  label={`Amount (${currency.symbol})`}
                   value={swiftMintFlowAmount}
                   onChange={handleSwiftMintFlowAmountChange}
                   placeholder="Enter amount"
@@ -440,7 +447,7 @@ export default function TransfersPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <FiDollarSign />
+                        <span>{currency.symbol}</span>
                       </InputAdornment>
                     ),
                   }}
@@ -651,7 +658,7 @@ export default function TransfersPage() {
                   </Box>
                   <Box>
                     <Typography variant="body1" fontWeight={500}>
-                      Other banks: $5,000/day & $30,000/month
+                      Other banks: {currency.symbol}5,000/day & {currency.symbol}30,000/month
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Transfers to other banks are completed within 1-2 hours during business days.

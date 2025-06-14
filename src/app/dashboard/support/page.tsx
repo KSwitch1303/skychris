@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import {
   Box,
   Typography,
@@ -62,6 +63,7 @@ function TabPanel(props: TabPanelProps) {
 
 export default function SupportPage() {
   const theme = useTheme();
+  const { currency } = useCurrency();
   const [tabValue, setTabValue] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
   const [loading, setLoading] = useState(false);
@@ -94,7 +96,7 @@ export default function SupportPage() {
     {
       id: 'faq4',
       question: 'Is there a limit on transfers?',
-      answer: 'Yes, there are daily and monthly limits on transfers. Standard accounts can transfer up to $10,000 per day and $50,000 per month. You can request a limit increase by verifying your identity with additional documentation.'
+      answer: `Yes, there are daily and monthly limits on transfers. Standard accounts can transfer up to ${currency.symbol}10,000 per day and ${currency.symbol}50,000 per month. You can request a limit increase by verifying your identity with additional documentation.`
     },
     {
       id: 'faq5',

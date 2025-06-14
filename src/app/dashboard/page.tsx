@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
+import { CurrencyDisplay, ColoredCurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import { 
   Box, 
   Button, 
@@ -50,7 +53,10 @@ ChartJS.register(
 
 export default function Dashboard() {
   const theme = useTheme();
+  const { currency } = useCurrency();
+  const formatter = useCurrencyFormatter();
   const [user, setUser] = useState<any>(null);
+  const [balanceHidden, setBalanceHidden] = useState(true);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -127,13 +133,17 @@ export default function Dashboard() {
     fetchUserData();
   }, []);
 
-  // Format currency for US Dollars
+  // Format currency using the current currency settings
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency.code,
+      currencyDisplay: 'symbol',
       minimumFractionDigits: 2
-    }).format(amount);
+    })
+    .format(amount)
+    // Replace the auto-generated currency symbol with our custom one from settings
+    .replace(/^[\p{Sc}\$€£¥]/u, currency.symbol);
   };
 
   // Chart data for balance history, using real data from API
@@ -277,9 +287,18 @@ export default function Dashboard() {
                 </IconButton>
               </Box>
               
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                {balanceVisible ? formatCurrency(user?.balance || 0) : '••••••••••'}
-              </Typography>
+              {balanceVisible ? (
+                <ColoredCurrencyDisplay
+                  amount={user?.balance || 0}
+                  variant="h4"
+                  fontWeight={700}
+                  sx={{ mb: 1 }}
+                />
+              ) : (
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                  ••••••••••
+                </Typography>
+              )}
               
               <Box sx={{ mt: 2, mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
@@ -481,15 +500,12 @@ export default function Dashboard() {
                         </Typography>
                       </Box>
                     </Box>
-                    <Typography
+                    <ColoredCurrencyDisplay
+                      amount={transaction.type === 'debit' ? -transaction.amount : transaction.amount}
                       variant="body2"
-                      sx={{
-                        fontWeight: 500,
-                        color: transaction.type === 'debit' ? 'error.main' : 'success.main',
-                      }}
-                    >
-                      {transaction.type === 'debit' ? '-' : '+'}{formatCurrency(transaction.amount)}
-                    </Typography>
+                      fontWeight={500}
+                      showPositiveSign={true}
+                    />
                   </Box>
                 ))
               ) : (

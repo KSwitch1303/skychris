@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
+import { CurrencyDisplay, ColoredCurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -56,6 +59,8 @@ const providers = {
 
 const BillsPage = () => {
   const theme = useTheme();
+  const { currency } = useCurrency();
+  const formatter = useCurrencyFormatter();
   
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
@@ -250,7 +255,7 @@ const BillsPage = () => {
                         placeholder="0.00"
                         type="number"
                         InputProps={{
-                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                          startAdornment: <InputAdornment position="start">{currency.symbol}</InputAdornment>,
                         }}
                       />
                     </Box>

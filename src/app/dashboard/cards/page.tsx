@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
 import {
   Box,
   Typography,

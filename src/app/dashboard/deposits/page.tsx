@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
+import { CurrencyDisplay, ColoredCurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import {
   Box,
   Typography,
@@ -57,17 +60,21 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-// Quick amount buttons
-const quickAmounts = [
-  { value: 50, label: '$50' },
-  { value: 100, label: '$100' },
-  { value: 200, label: '$200' },
-  { value: 500, label: '$500' },
-  { value: 1000, label: '$1000' }
-];
+// Quick amount buttons - will be updated with currency symbol in component
 
 export default function DepositsPage() {
   const theme = useTheme();
+  const { currency } = useCurrency();
+  const formatter = useCurrencyFormatter();
+  
+  // Quick amount buttons with dynamic currency symbol
+  const quickAmounts = [
+    { value: 50, label: `${currency.symbol}50` },
+    { value: 100, label: `${currency.symbol}100` },
+    { value: 200, label: `${currency.symbol}200` },
+    { value: 500, label: `${currency.symbol}500` },
+    { value: 1000, label: `${currency.symbol}1000` }
+  ];
   const [tabValue, setTabValue] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [amount, setAmount] = useState<string>('100');
@@ -318,7 +325,7 @@ export default function DepositsPage() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <FiDollarSign />
+                      <span>{currency.symbol}</span>
                     </InputAdornment>
                   )
                 }}
@@ -567,7 +574,7 @@ export default function DepositsPage() {
                 • Deposits are pending approval (1-2 business days)
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                • Minimum deposit amount is $10
+                • Minimum deposit amount is {currency.symbol}10
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
                 • No fees for depositing funds

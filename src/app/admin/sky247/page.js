@@ -62,6 +62,7 @@ export default function AdminPage() {
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState([]);
+  const [currency, setCurrency] = useState({ symbol: '$', code: 'USD', name: 'US Dollar' });
   const [cards, setCards] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
@@ -310,6 +311,60 @@ export default function AdminPage() {
   };
 
   // Fetch data from backend
+  // Function to fetch currency settings
+  const fetchCurrency = async () => {
+    try {
+      const res = await fetch('/api/currency', { credentials: 'include' });
+      const data = await res.json();
+      
+      if (data.success && data.data) {
+        setCurrency(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching currency settings:', error);
+      setError('Failed to load currency settings');
+    }
+  };
+
+  // Function to update currency settings
+  const updateCurrency = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/currency', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(currency),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSuccess('Currency settings updated successfully');
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        throw new Error(data.message || 'Failed to update currency settings');
+      }
+    } catch (error) {
+      setError(error.message || 'An error occurred while updating currency');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCurrencyChange = (e) => {
+    const { name, value } = e.target;
+    setCurrency(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const fetchData = async () => {
     if (!isAuthenticated) return;
     
@@ -371,6 +426,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
+      fetchCurrency(); // Also fetch currency settings
     }
   }, [isAuthenticated]);
 
@@ -470,6 +526,7 @@ export default function AdminPage() {
           <Tab label="Cards" {...a11yProps(1)} />
           <Tab label="Withdrawals" {...a11yProps(2)} />
           <Tab label="Transactions" {...a11yProps(3)} />
+          <Tab label="Currency" {...a11yProps(4)} />
         </Tabs>
       </Box>
       
@@ -654,47 +711,125 @@ export default function AdminPage() {
 
       {/* Transactions Tab */}
       <TabPanel value={tabValue} index={3}>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="transactions table">
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Reference</TableCell>
                 <TableCell>Type</TableCell>
-                <TableCell align="right">Amount ($)</TableCell>
-                <TableCell>Description</TableCell>
+                <TableCell>Amount</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Created</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Description</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((transaction) => (
-                  <TableRow
-                    key={transaction._id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">{transaction.reference}</TableCell>
-                    <TableCell>{transaction.type}</TableCell>
-                    <TableCell align="right">${transaction.amount?.toFixed(2) || '0.00'}</TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    <TableCell>
-                      <Typography color={getStatusColor(transaction.status || 'pending')}>
-                        {transaction.status || 'Pending'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{new Date(transaction.createdAt).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
+              {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    {loading ? 'Loading...' : 'No transactions found'}
+                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                    <CircularProgress />
                   </TableCell>
                 </TableRow>
+              ) : filteredTransactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                    No transactions found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredTransactions.map((transaction) => (
+                  <TableRow key={transaction._id}>
+                    <TableCell>{transaction.reference || 'N/A'}</TableCell>
+                    <TableCell>{transaction.type || 'N/A'}</TableCell>
+                    <TableCell>
+                      {currency.symbol}{parseFloat(transaction.amount || 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ color: getStatusColor(transaction.status) }}>
+                        {transaction.status || 'Pending'}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(transaction.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{transaction.description || 'N/A'}</TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
+      </TabPanel>
+
+      {/* Currency Tab */}
+      <TabPanel value={tabValue} index={4}>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>Currency Settings</Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Configure the currency symbol and code used throughout the application.
+          </Typography>
+          
+          <Box component="form" onSubmit={updateCurrency} sx={{ mt: 3 }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+              <TextField
+                label="Currency Symbol"
+                name="symbol"
+                value={currency.symbol}
+                onChange={handleCurrencyChange}
+                sx={{ width: { xs: '100%', sm: '48%', md: '32%' } }}
+              />
+              <TextField
+                label="Currency Code"
+                name="code"
+                value={currency.code}
+                onChange={handleCurrencyChange}
+                sx={{ width: { xs: '100%', sm: '48%', md: '32%' } }}
+              />
+              <TextField
+                label="Currency Name"
+                name="name"
+                value={currency.name}
+                onChange={handleCurrencyChange}
+                sx={{ width: { xs: '100%', sm: '48%', md: '32%' } }}
+              />
+            </Box>
+            
+            <Typography variant="subtitle1" gutterBottom>Common Currencies</Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+              {[
+                { symbol: '$', code: 'USD', name: 'US Dollar' },
+                { symbol: '€', code: 'EUR', name: 'Euro' },
+                { symbol: '£', code: 'GBP', name: 'British Pound' },
+                { symbol: '₦', code: 'NGN', name: 'Nigerian Naira' },
+                { symbol: '₹', code: 'INR', name: 'Indian Rupee' },
+                { symbol: '¥', code: 'JPY', name: 'Japanese Yen' },
+                { symbol: '₱', code: 'PHP', name: 'Philippine Peso' },
+                { symbol: '₽', code: 'RUB', name: 'Russian Ruble' },
+                { symbol: 'R$', code: 'BRL', name: 'Brazilian Real' },
+              ].map((curr) => (
+                <Button 
+                  key={curr.code}
+                  variant={currency.code === curr.code ? "contained" : "outlined"}
+                  size="small"
+                  onClick={() => setCurrency(curr)}
+                  sx={{ mb: 1 }}
+                >
+                  {curr.symbol} {curr.code}
+                </Button>
+              ))}
+            </Box>
+            
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              startIcon={<FiSave />}
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : 'Save Currency Settings'}
+            </Button>
+          </Box>
+        </Paper>
       </TabPanel>
 
       {/* Edit Dialog */}

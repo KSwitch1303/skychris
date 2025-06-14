@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { CurrencyDisplay, ColoredCurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import {
   Box,
   Typography,
@@ -64,6 +66,7 @@ interface Transaction {
 
 export default function TransactionsPage() {
   const theme = useTheme();
+  const { currency } = useCurrency();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -215,9 +218,12 @@ export default function TransactionsPage() {
               <CircularProgress size={20} sx={{ color: '#06D6A0' }} />
             </Box>
           ) : (
-            <Typography variant="h5" sx={{ color: '#06D6A0', fontWeight: 600 }}>
-              ${transactions.filter(t => t.type === 'credit').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
-            </Typography>
+            <ColoredCurrencyDisplay 
+              amount={transactions.filter(t => t.type === 'credit').reduce((sum, t) => sum + t.amount, 0)}
+              variant="h5"
+              color="#06D6A0"
+              fontWeight={600}
+            />
           )}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
             <Box component="span" sx={{ color: '#06D6A0', display: 'flex', alignItems: 'center', mr: 0.5 }}>
@@ -241,9 +247,12 @@ export default function TransactionsPage() {
               <CircularProgress size={20} sx={{ color: '#FF6B6B' }} />
             </Box>
           ) : (
-            <Typography variant="h5" sx={{ color: '#FF6B6B', fontWeight: 600 }}>
-              ${transactions.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
-            </Typography>
+            <ColoredCurrencyDisplay 
+              amount={transactions.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount, 0)}
+              variant="h5"
+              color="#FF6B6B"
+              fontWeight={600}
+            />
           )}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
             <Box component="span" sx={{ color: '#FF6B6B', display: 'flex', alignItems: 'center', mr: 0.5 }}>
@@ -515,11 +524,12 @@ export default function TransactionsPage() {
                       }} 
                     />
                   </TableCell>
-                  <TableCell align="right" sx={{ 
-                    fontWeight: 600, 
-                    color: transaction.type === 'credit' ? '#06D6A0' : '#FF6B6B' 
-                  }}>
-                    {transaction.type === 'credit' ? '+' : '-'} ${transaction.amount.toLocaleString()}
+                  <TableCell align="right">
+                    <ColoredCurrencyDisplay
+                      amount={transaction.type === 'credit' ? transaction.amount : -transaction.amount}
+                      fontWeight={600}
+                      showPositiveSign={true}
+                    />
                   </TableCell>
                 </TableRow>
               ))
