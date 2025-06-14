@@ -119,7 +119,7 @@ export default function DepositPage() {
               Make a transfer with your bank using the details below. Use the reference code provided so we can link the payment to your account.
             </Alert>
             
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            {/* <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
                 <Typography variant="body2" color="text.secondary">
                   Bank Name
@@ -183,7 +183,7 @@ export default function DepositPage() {
                 </Typography>
               </Grid>
             </Grid>
-            
+             */}
             <Alert severity="warning" sx={{ mb: 3 }}>
               <Typography variant="body2" fontWeight={500}>
                 Important:
