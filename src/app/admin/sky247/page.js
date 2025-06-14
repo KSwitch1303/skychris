@@ -499,34 +499,46 @@ export default function AdminPage() {
   }
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
+    <Box sx={{ width: '100%', p: { xs: 1, sm: 2 } }}>
       <Typography variant="h4" gutterBottom>Admin Dashboard</Typography>
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ mb: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' } }}>
         <TextField
           label="Search"
           variant="outlined"
           size="small"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{ width: '300px' }}
+          sx={{ width: { xs: '100%', sm: '300px' } }}
         />
         <Button 
           startIcon={<FiRefreshCw />}
           variant="outlined"
           onClick={fetchData}
           disabled={loading}
+          sx={{ alignSelf: { xs: 'flex-start', sm: 'auto' } }}
         >
           Refresh Data
         </Button>
       </Box>
       
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="admin tabs">
-          <Tab label="Users" {...a11yProps(0)} />
-          <Tab label="Cards" {...a11yProps(1)} />
-          <Tab label="Withdrawals" {...a11yProps(2)} />
-          <Tab label="Transactions" {...a11yProps(3)} />
-          <Tab label="Currency" {...a11yProps(4)} />
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%', overflowX: 'auto' }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          aria-label="admin tabs"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{
+            '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
+            minHeight: { xs: '42px', sm: '48px' },
+          }}
+        >
+          <Tab label="Users" {...a11yProps(0)} sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
+          <Tab label="Cards" {...a11yProps(1)} sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
+          <Tab label="Withdrawals" {...a11yProps(2)} sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
+          <Tab label="Transactions" {...a11yProps(3)} sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
+          <Tab label="Currency" {...a11yProps(4)} sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
         </Tabs>
       </Box>
       
