@@ -27,8 +27,13 @@ export default function DepositPage() {
   const { prepend } = useCurrencyFormatter();
   const [activeStep, setActiveStep] = useState(0);
   const [amount, setAmount] = useState('');
-  const [reference, setReference] = useState(`DEP${Date.now().toString().substring(0, 10)}`);
+  const [reference, setReference] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
+  
+  // Generate reference code on client side only to avoid hydration errors
+  useEffect(() => {
+    setReference(`DEP${Date.now().toString().substring(0, 10)}`);
+  }, []);
   const [user, setUser] = useState({ 
     firstName: 'John',
     lastName: 'Doe',
